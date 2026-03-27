@@ -26,6 +26,7 @@ export default function Login() {
       return
     }
 
+    localStorage.clear()
     localStorage.setItem('negocio_id', data.id)
     localStorage.setItem('negocio', JSON.stringify(data))
     window.location.href = '/dashboard'
@@ -80,7 +81,7 @@ export default function Login() {
               disabled={loading}
               className="bg-[#c8f135] text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 mt-2"
             >
-              {loading ? 'Entrando...' : 'Entrar al panel'}
+              {loading ? 'Entrando...' : 'Entrar al panel →'}
             </button>
           </form>
 
