@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [turnos, setTurnos] = useState([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('hoy')
+  const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
     const negocioGuardado = JSON.parse(localStorage.getItem('negocio') || '{}')
@@ -44,6 +45,18 @@ export default function Dashboard() {
   const cerrarSesion = () => {
     localStorage.clear()
     window.location.href = '/login'
+  }
+
+  const copiarLink = () => {
+    const link = 'https://turnify-git-main-amcabj0-devs-projects.vercel.app/b/' + (negocio?.slug || '')
+    const el = document.createElement('textarea')
+    el.value = link
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2000)
   }
 
   const hoy = new Date().toDateString()
@@ -215,9 +228,9 @@ export default function Dashboard() {
                 </p>
               </div>
               <button
-                onClick={() => navigator.clipboard.writeText('https://turnify-git-main-amcabj0-devs-projects.vercel.app/b/' + negocio?.slug)}
+                onClick={copiarLink}
                 className="w-full bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] text-sm font-bold py-2 rounded-xl hover:bg-[#c8f135]/20 transition-colors">
-                📋 Copiar link
+                {copiado ? '✅ Copiado!' : '📋 Copiar link'}
               </button>
             </div>
 
