@@ -44,11 +44,26 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       cliente_id: clienteId,
       empleado_id: seleccion.empleado?.id || null,
       servicio_id: seleccion.servicio?.id,
-      fecha_hora: `${seleccion.fecha}T${seleccion.hora}:00`,
+      fecha_hora: seleccion.fecha + 'T' + seleccion.hora + ':00',
       forma_pago: seleccion.pago,
       monto: seleccion.servicio?.precio || 0,
       estado: 'pendiente'
     }])
+
+    if (negocio.whatsapp_notif) {
+      const fecha = new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
+      const mensaje = 'Nuevo turno en ' + negocio.nombre + '%0A' +
+        'Cliente: ' + seleccion.nombre + '%0A' +
+        'Servicio: ' + seleccion.servicio?.nombre + '%0A' +
+        (seleccion.empleado ? 'Con: ' + seleccion.empleado?.nombre + '%0A' : '') +
+        'Fecha: ' + fecha + '%0A' +
+        'Hora: ' + seleccion.hora + '%0A' +
+        'Pago: ' + seleccion.pago + '%0A' +
+        'WhatsApp cliente: ' + seleccion.whatsapp
+      const link = 'https://wa.me/549' + negocio.whatsapp_notif + '?text=' + mensaje
+      window.open(link, '_blank')
+    }
+
     setConfirmado(true)
     setGuardando(false)
   }
@@ -62,7 +77,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
       <div className="text-center max-w-sm">
         <div className="text-6xl mb-4">🎉</div>
-        <h2 className="text-2xl font-black text-white mb-2">¡Turno confirmado!</h2>
+        <h2 className="text-2xl font-black text-white mb-2">Turno confirmado!</h2>
         <p className="text-gray-400 mb-6">Te esperamos en {negocio.nombre}</p>
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 text-left mb-6">
           <div className="flex flex-col gap-2">
@@ -89,15 +104,15 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         <div className="flex items-center justify-center gap-2 mb-8">
           {[1,2,3,4].map(p => (
             <div key={p} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${paso >= p ? 'bg-[#c8f135] text-black' : 'bg-[#1a1a1a] text-gray-500'}`}>{p}</div>
-              {p < 4 && <div className={`w-8 h-0.5 ${paso > p ? 'bg-[#c8f135]' : 'bg-white/10'}`} />}
+              <div className={'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ' + (paso >= p ? 'bg-[#c8f135] text-black' : 'bg-[#1a1a1a] text-gray-500')}>{p}</div>
+              {p < 4 && <div className={'w-8 h-0.5 ' + (paso > p ? 'bg-[#c8f135]' : 'bg-white/10')} />}
             </div>
           ))}
         </div>
 
         {paso === 1 && (
           <div>
-            <h2 className="text-xl font-black mb-1">¿Qué servicio necesitás?</h2>
+            <h2 className="text-xl font-black mb-1">Que servicio necesitas?</h2>
             <p className="text-gray-500 text-sm mb-6">Elegí el servicio que querés reservar</p>
             <div className="flex flex-col gap-3">
               {servicios.map(s => (
@@ -113,7 +128,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
         {paso === 2 && (
           <div>
-            <h2 className="text-xl font-black mb-1">¿Con quién querés atenderte?</h2>
+            <h2 className="text-xl font-black mb-1">Con quien querés atenderte?</h2>
             <p className="text-gray-500 text-sm mb-6">Elegí o dejá asignación automática</p>
             <div className="flex flex-col gap-3">
               <button onClick={() => { setSeleccion({...seleccion, empleado: null}); setPaso(3) }}
@@ -137,7 +152,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
         {paso === 3 && (
           <div>
-            <h2 className="text-xl font-black mb-1">¿Cuándo querés el turno?</h2>
+            <h2 className="text-xl font-black mb-1">Cuando querés el turno?</h2>
             <p className="text-gray-500 text-sm mb-6">Elegí día y horario</p>
             <div className="flex flex-col gap-4">
               <div>
@@ -152,7 +167,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   <div className="grid grid-cols-4 gap-2">
                     {horas.map(h => (
                       <button key={h} onClick={() => setSeleccion({...seleccion, hora: h})}
-                        className={`py-2 rounded-xl text-sm font-medium transition-colors ${seleccion.hora === h ? 'bg-[#c8f135] text-black' : 'bg-[#1a1a1a] border border-white/10 hover:border-[#c8f135]/40'}`}>
+                        className={'py-2 rounded-xl text-sm font-medium transition-colors ' + (seleccion.hora === h ? 'bg-[#c8f135] text-black' : 'bg-[#1a1a1a] border border-white/10 hover:border-[#c8f135]/40')}>
                         {h}
                       </button>
                     ))}
@@ -189,7 +204,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 <div className="grid grid-cols-3 gap-2">
                   {[{v:'efectivo',l:'💵 Efectivo'},{v:'transferencia',l:'🏦 Transferencia'},{v:'mercadopago',l:'📱 Mercado Pago'}].map(op => (
                     <button key={op.v} onClick={() => setSeleccion({...seleccion, pago: op.v})}
-                      className={`py-2 px-3 rounded-xl text-xs font-medium transition-colors ${seleccion.pago === op.v ? 'bg-[#c8f135] text-black' : 'bg-[#1a1a1a] border border-white/10 hover:border-[#c8f135]/40'}`}>
+                      className={'py-2 px-3 rounded-xl text-xs font-medium transition-colors ' + (seleccion.pago === op.v ? 'bg-[#c8f135] text-black' : 'bg-[#1a1a1a] border border-white/10 hover:border-[#c8f135]/40')}>
                       {op.l}
                     </button>
                   ))}
