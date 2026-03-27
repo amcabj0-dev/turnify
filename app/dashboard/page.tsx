@@ -31,14 +31,19 @@ export default function Dashboard() {
 
   const cambiarEstado = async (id, estado) => {
     await supabase.from('turnos').update({ estado }).eq('id', id)
-    const negocioGuardado = JSON.parse(localStorage.getItem('negocio') || '{}')
-    cargarTurnos(negocioGuardado.id)
+    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
+    cargarTurnos(n.id)
   }
 
   const marcarPagado = async (id, pagado) => {
     await supabase.from('turnos').update({ pagado: !pagado }).eq('id', id)
-    const negocioGuardado = JSON.parse(localStorage.getItem('negocio') || '{}')
-    cargarTurnos(negocioGuardado.id)
+    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
+    cargarTurnos(n.id)
+  }
+
+  const cerrarSesion = () => {
+    localStorage.clear()
+    window.location.href = '/login'
   }
 
   const hoy = new Date().toDateString()
@@ -83,10 +88,7 @@ export default function Dashboard() {
           <span className="bg-[#c8f135]/10 text-[#c8f135] text-xs font-bold px-3 py-1 rounded-full border border-[#c8f135]/30">
             {negocio?.plan?.toUpperCase() || 'BÁSICO'}
           </span>
-          <button
-            onClick={() => { localStorage.clear(); window.location.href = '/login' }}
-            className="text-gray-400 hover:text-white text-sm transition-colors"
-          >
+          <button onClick={cerrarSesion} className="text-gray-400 hover:text-white text-sm transition-colors">
             Cerrar sesión
           </button>
         </div>
@@ -100,13 +102,7 @@ export default function Dashboard() {
               {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
-          
-            href={`/b/${negocio?.slug}`}
-            target="_blank"
-            className="bg-[#c8f135] text-black text-sm font-bold px-4 py-2 rounded-xl hover:scale-105 transition-transform flex items-center gap-2"
-          >
-            🔗 Ver mi página
-          </a>
+          <a href={'/b/' + negocio?.slug} target="_blank" rel="noreferrer" className="bg-[#c8f135] text-black text-sm font-bold px-4 py-2 rounded-xl hover:scale-105 transition-transform flex items-center gap-2">🔗 Ver mi página</a>
         </div>
 
         <div className="grid grid-cols-4 gap-4 mb-8">
@@ -114,11 +110,11 @@ export default function Dashboard() {
             { label: 'Turnos hoy', value: turnosHoy.length, icon: '📅', color: 'text-[#c8f135]' },
             { label: 'Pendientes', value: turnosPendientes.length, icon: '⏳', color: 'text-yellow-400' },
             { label: 'Total turnos', value: turnos.length, icon: '📊', color: 'text-blue-400' },
-            { label: 'Ingresos cobrados', value: `$${ingresosMes.toLocaleString()}`, icon: '💰', color: 'text-green-400' },
+            { label: 'Ingresos cobrados', value: '$' + ingresosMes.toLocaleString(), icon: '💰', color: 'text-green-400' },
           ].map((stat, i) => (
             <div key={i} className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors">
               <div className="text-2xl mb-2">{stat.icon}</div>
-              <div className={`text-2xl font-black ${stat.color}`}>{stat.value}</div>
+              <div className={'text-2xl font-black ' + stat.color}>{stat.value}</div>
               <div className="text-gray-500 text-sm mt-1">{stat.label}</div>
             </div>
           ))}
@@ -136,7 +132,7 @@ export default function Dashboard() {
                   { v: 'todos', l: 'Todos' },
                 ].map(f => (
                   <button key={f.v} onClick={() => setFiltro(f.v)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${filtro === f.v ? 'bg-[#c8f135] text-black' : 'text-gray-400 hover:text-white'}`}>
+                    className={'px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ' + (filtro === f.v ? 'bg-[#c8f135] text-black' : 'text-gray-400 hover:text-white')}>
                     {f.l}
                   </button>
                 ))}
@@ -173,13 +169,12 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className={`text-xs font-bold px-2 py-1 rounded-full border ${estadoColor(turno.estado)}`}>
+                          <span className={'text-xs font-bold px-2 py-1 rounded-full border ' + estadoColor(turno.estado)}>
                             {turno.estado}
                           </span>
                           <button
                             onClick={() => marcarPagado(turno.id, turno.pagado)}
-                            className={`text-xs px-2 py-1 rounded-full font-bold border transition-colors ${turno.pagado ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/05 text-gray-500 border-white/10 hover:border-green-500/30'}`}
-                          >
+                            className={'text-xs px-2 py-1 rounded-full font-bold border transition-colors ' + (turno.pagado ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/05 text-gray-500 border-white/10 hover:border-green-500/30')}>
                             {turno.pagado ? '✓ Pagado' : 'Sin pagar'}
                           </button>
                         </div>
@@ -215,12 +210,13 @@ export default function Dashboard() {
             <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5">
               <h3 className="font-bold mb-3 text-sm">Tu link de reservas</h3>
               <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3 mb-3">
-                <p className="text-[#c8f135] text-xs font-mono break-all">turnify.vercel.app/b/{negocio?.slug}</p>
+                <p className="text-[#c8f135] text-xs font-mono break-all">
+                  {'turnify-git-main-amcabj0-devs-projects.vercel.app/b/' + negocio?.slug}
+                </p>
               </div>
               <button
-                onClick={() => navigator.clipboard.writeText(`https://turnify-git-main-amcabj0-devs-projects.vercel.app/b/${negocio?.slug}`)}
-                className="w-full bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] text-sm font-bold py-2 rounded-xl hover:bg-[#c8f135]/20 transition-colors"
-              >
+                onClick={() => navigator.clipboard.writeText('https://turnify-git-main-amcabj0-devs-projects.vercel.app/b/' + negocio?.slug)}
+                className="w-full bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] text-sm font-bold py-2 rounded-xl hover:bg-[#c8f135]/20 transition-colors">
                 📋 Copiar link
               </button>
             </div>
