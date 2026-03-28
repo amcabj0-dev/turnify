@@ -122,7 +122,7 @@ export default function Dashboard() {
         </div>
 
         {/* STATS - 2 columnas en mobile */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {[
             { label: 'Turnos hoy', value: turnosHoy.length, icon: '📅', color: 'text-[#c8f135]' },
             { label: 'Pendientes', value: turnosPendientes.length, icon: '⏳', color: 'text-yellow-400' },
@@ -137,21 +137,19 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* LINK */}
+        {/* LINK - solo botón, sin URL larga */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
           <h3 className="font-bold mb-2 text-sm">Tu link de reservas</h3>
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-3 mb-2">
-            <p className="text-[#c8f135] text-xs font-mono break-all">
-              {'turnify-git-main-amcabj0-devs-projects.vercel.app/b/' + negocio?.slug}
-            </p>
-          </div>
           <button onClick={copiarLink}
-            className="w-full bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] text-sm font-bold py-2 rounded-xl hover:bg-[#c8f135]/20 transition-colors">
-            {copiado ? '✅ Copiado!' : '📋 Copiar link'}
+            className="w-full bg-[#c8f135] text-black text-sm font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform">
+            {copiado ? '✅ Link copiado!' : '📋 Copiar link de reservas'}
           </button>
+          <p className="text-gray-600 text-xs mt-2 text-center">
+            {'/b/' + negocio?.slug}
+          </p>
         </div>
 
-        {/* GESTION - en mobile horizontal scroll */}
+        {/* GESTION */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
           <h3 className="font-bold mb-3 text-sm">Gestión</h3>
           <div className="grid grid-cols-2 gap-2">
