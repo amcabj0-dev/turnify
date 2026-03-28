@@ -92,64 +92,49 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <nav className="border-b border-white/10 px-4 py-4 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
+      <nav className="border-b border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
+        <h1 className="text-lg font-black">Turn<span className="text-[#c8f135]">ify</span></h1>
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-black">Turn<span className="text-[#c8f135]">ify</span></h1>
-          {negocio && <span className="text-gray-500 text-xs truncate max-w-[120px]">· {negocio.nombre}</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="bg-[#c8f135]/10 text-[#c8f135] text-xs font-bold px-2 py-1 rounded-full border border-[#c8f135]/30">
-            {negocio?.plan?.toUpperCase() || 'BÁSICO'}
-          </span>
-          <button onClick={cerrarSesion} className="text-gray-400 hover:text-white text-xs transition-colors">
-            Salir
-          </button>
+          <button onClick={cerrarSesion} className="text-gray-400 text-xs">Salir</button>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="px-4 py-5">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-2xl font-black mb-0.5">Buen día 👋</h2>
-            <p className="text-gray-400 text-xs">
-              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
+            <h2 className="text-xl font-black">Buen día 👋</h2>
+            <p className="text-gray-500 text-xs">{negocio?.nombre}</p>
           </div>
           <a href={'/b/' + negocio?.slug} target="_blank" rel="noreferrer"
-            className="bg-[#c8f135] text-black text-xs font-bold px-3 py-2 rounded-xl hover:scale-105 transition-transform">
-            🔗 Mi página
+            className="bg-[#c8f135] text-black text-xs font-bold px-3 py-2 rounded-xl">
+            Ver página
           </a>
         </div>
 
-        {/* STATS - 2 columnas en mobile */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           {[
             { label: 'Turnos hoy', value: turnosHoy.length, icon: '📅', color: 'text-[#c8f135]' },
             { label: 'Pendientes', value: turnosPendientes.length, icon: '⏳', color: 'text-yellow-400' },
-            { label: 'Total', value: turnos.length, icon: '📊', color: 'text-blue-400' },
+            { label: 'Total turnos', value: turnos.length, icon: '📊', color: 'text-blue-400' },
             { label: 'Cobrado', value: '$' + ingresosMes.toLocaleString(), icon: '💰', color: 'text-green-400' },
           ].map((stat, i) => (
             <div key={i} className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4">
-              <div className="text-xl mb-1">{stat.icon}</div>
+              <div className="text-lg mb-1">{stat.icon}</div>
               <div className={'text-xl font-black ' + stat.color}>{stat.value}</div>
               <div className="text-gray-500 text-xs mt-0.5">{stat.label}</div>
             </div>
           ))}
         </div>
 
-        {/* LINK - solo botón, sin URL larga */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
           <h3 className="font-bold mb-2 text-sm">Tu link de reservas</h3>
           <button onClick={copiarLink}
-            className="w-full bg-[#c8f135] text-black text-sm font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform">
-            {copiado ? '✅ Link copiado!' : '📋 Copiar link de reservas'}
+            className="w-full bg-[#c8f135] text-black text-sm font-bold py-3 rounded-xl">
+            {copiado ? '✅ Copiado!' : '📋 Copiar link'}
           </button>
-          <p className="text-gray-600 text-xs mt-2 text-center">
-            {'/b/' + negocio?.slug}
-          </p>
+          <p className="text-gray-600 text-xs mt-1 text-center">/b/{negocio?.slug}</p>
         </div>
 
-        {/* GESTION */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
           <h3 className="font-bold mb-3 text-sm">Gestión</h3>
           <div className="grid grid-cols-2 gap-2">
@@ -160,7 +145,7 @@ export default function Dashboard() {
               { icon: '⚙️', label: 'Configuración', href: '/dashboard/configuracion' },
             ].map((item, i) => (
               <Link key={i} href={item.href}
-                className="flex items-center gap-2 px-3 py-3 rounded-xl bg-[#0a0a0a] border border-white/06 hover:border-white/20 transition-colors text-gray-300 hover:text-white text-sm">
+                className="flex items-center gap-2 px-3 py-3 rounded-xl bg-[#0a0a0a] border border-white/10 text-gray-300 text-sm">
                 <span>{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
               </Link>
@@ -168,10 +153,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* TURNOS */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-black text-lg">Turnos</h3>
+            <h3 className="font-black">Turnos</h3>
             <div className="flex gap-1 bg-[#1a1a1a] border border-white/10 rounded-xl p-1">
               {[
                 { v: 'hoy', l: 'Hoy' },
@@ -180,7 +164,7 @@ export default function Dashboard() {
                 { v: 'todos', l: 'Todos' },
               ].map(f => (
                 <button key={f.v} onClick={() => setFiltro(f.v)}
-                  className={'px-2 py-1.5 rounded-lg text-xs font-bold transition-colors ' + (filtro === f.v ? 'bg-[#c8f135] text-black' : 'text-gray-400 hover:text-white')}>
+                  className={'px-2 py-1.5 rounded-lg text-xs font-bold ' + (filtro === f.v ? 'bg-[#c8f135] text-black' : 'text-gray-400')}>
                   {f.l}
                 </button>
               ))}
@@ -192,20 +176,19 @@ export default function Dashboard() {
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
                 <p className="text-gray-400 text-sm">No hay turnos para este período</p>
-                <p className="text-gray-600 text-xs mt-1">Compartí tu link para recibir reservas</p>
               </div>
             ) : (
               <div className="divide-y divide-white/05">
                 {turnosFiltrados.map((turno) => (
                   <div key={turno.id} className="px-4 py-4">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-[#c8f135]/10 rounded-full flex items-center justify-center text-xs font-bold text-[#c8f135] flex-shrink-0">
                           {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-medium text-sm truncate">{turno.clientes?.nombre}</div>
-                          <div className="text-gray-500 text-xs truncate">{turno.servicios?.nombre}</div>
+                        <div>
+                          <div className="font-medium text-sm">{turno.clientes?.nombre}</div>
+                          <div className="text-gray-500 text-xs">{turno.servicios?.nombre}</div>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
@@ -222,20 +205,20 @@ export default function Dashboard() {
                         {turno.estado}
                       </span>
                       <button onClick={() => marcarPagado(turno.id, turno.pagado)}
-                        className={'text-xs px-2 py-1 rounded-full font-bold border transition-colors ' + (turno.pagado ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/05 text-gray-500 border-white/10')}>
+                        className={'text-xs px-2 py-1 rounded-full font-bold border ' + (turno.pagado ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/05 text-gray-500 border-white/10')}>
                         {turno.pagado ? '✓ Pagado' : 'Sin pagar'}
                       </button>
                       {turno.estado === 'pendiente' && (
                         <button onClick={() => cambiarEstado(turno.id, 'confirmado')}
-                          className="bg-green-500/10 text-green-400 text-xs px-2 py-1 rounded-lg font-bold">✓ Confirmar</button>
+                          className="bg-green-500/10 text-green-400 text-xs px-2 py-1 rounded-lg font-bold">✓</button>
                       )}
                       {turno.estado !== 'cancelado' && turno.estado !== 'completado' && (
                         <button onClick={() => cambiarEstado(turno.id, 'cancelado')}
-                          className="bg-red-500/10 text-red-400 text-xs px-2 py-1 rounded-lg font-bold">✗ Cancelar</button>
+                          className="bg-red-500/10 text-red-400 text-xs px-2 py-1 rounded-lg font-bold">✗</button>
                       )}
                       {turno.estado === 'confirmado' && (
                         <button onClick={() => cambiarEstado(turno.id, 'completado')}
-                          className="bg-blue-500/10 text-blue-400 text-xs px-2 py-1 rounded-lg font-bold">★ Completar</button>
+                          className="bg-blue-500/10 text-blue-400 text-xs px-2 py-1 rounded-lg font-bold">★</button>
                       )}
                     </div>
                   </div>
