@@ -94,9 +94,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <nav className="border-b border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
         <h1 className="text-lg font-black">Turn<span className="text-[#c8f135]">ify</span></h1>
-        <div className="flex items-center gap-2">
-          <button onClick={cerrarSesion} className="text-gray-400 text-xs">Salir</button>
-        </div>
+        <button onClick={cerrarSesion} className="text-gray-400 text-xs">Salir</button>
       </nav>
 
       <div className="px-4 py-5">
@@ -106,7 +104,7 @@ export default function Dashboard() {
             <p className="text-gray-500 text-xs">{negocio?.nombre}</p>
           </div>
           <a href={'/b/' + negocio?.slug} target="_blank" rel="noreferrer"
-            className="bg-[#c8f135] text-black text-xs font-bold px-3 py-2 rounded-xl">
+            className="bg-[#c8f135] text-black text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0">
             Ver página
           </a>
         </div>
@@ -132,7 +130,9 @@ export default function Dashboard() {
             className="w-full bg-[#c8f135] text-black text-sm font-bold py-3 rounded-xl">
             {copiado ? '✅ Copiado!' : '📋 Copiar link'}
           </button>
-          <p className="text-gray-600 text-xs mt-1 text-center">/b/{negocio?.slug}</p>
+          <p className="text-gray-600 text-xs mt-1 text-center overflow-hidden whitespace-nowrap text-ellipsis">
+            /b/{negocio?.slug}
+          </p>
         </div>
 
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
