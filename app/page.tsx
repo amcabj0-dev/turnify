@@ -129,7 +129,7 @@ export default function Home() {
             {[
               {
                 name: 'Básico',
-                price: '15.000',
+                price: '6000',
                 popular: false,
                 desc: 'Perfecto para arrancar',
                 features: [
@@ -144,7 +144,7 @@ export default function Home() {
               },
               {
                 name: 'Premium',
-                price: '35.000',
+                price: '10.000',
                 popular: true,
                 desc: 'Para negocios en crecimiento',
                 features: [
