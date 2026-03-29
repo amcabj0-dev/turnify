@@ -6,7 +6,7 @@ import Link from 'next/link'
 export default function Dashboard() {
   const [negocio, setNegocio] = useState(null)
   const [turnos, setTurnos] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [filtro, setFiltro] = useState('hoy')
   const [copiado, setCopiado] = useState(false)
   const turnosRef = useRef(null)
@@ -49,7 +49,7 @@ export default function Dashboard() {
   }
 
   const copiarLink = () => {
-    const link = 'https://turnify-git-main-amcabj0-devs-projects.vercel.app/b/' + (negocio?.slug || '')
+    const link = 'https://turnify-omega.vercel.app/b/' + (negocio?.slug || '')
     const el = document.createElement('textarea')
     el.value = link
     document.body.appendChild(el)
@@ -103,7 +103,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Barra de color arriba */}
       <div style={{ height: '3px', background: color }} />
 
       <nav className="border-b border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
@@ -126,7 +125,6 @@ export default function Dashboard() {
           </a>
         </div>
 
-        {/* STATS CLICKEABLES */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <button onClick={() => scrollATurnos('hoy')}
             className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/30 transition-colors active:scale-95"
@@ -161,7 +159,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* LINK */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
           <h3 className="font-bold mb-2 text-sm">Tu link de reservas</h3>
           <button onClick={copiarLink}
@@ -174,7 +171,6 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* GESTION */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
           <h3 className="font-bold mb-3 text-sm">Gestión</h3>
           <div className="grid grid-cols-2 gap-2">
@@ -193,7 +189,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* TURNOS */}
         <div ref={turnosRef}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-black">Turnos</h3>
