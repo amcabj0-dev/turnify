@@ -12,6 +12,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [loading, setLoading] = useState(true)
   const [confirmado, setConfirmado] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [vistaGaleria, setVistaGaleria] = useState(null)
 
   const horas = ['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30']
 
@@ -69,6 +70,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   }
 
   const color = negocio?.color || '#c8f135'
+  const esPremium = negocio?.plan === 'premium'
   const fechaMin = new Date().toISOString().split('T')[0]
 
   if (loading) return (
@@ -88,7 +90,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       <div className="text-center max-w-sm">
         <div className="text-6xl mb-4">🎉</div>
         <h2 className="text-2xl font-black text-white mb-2">Turno confirmado!</h2>
-        <p className="mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>Te esperamos en {negocio.nombre}</p>
+        <p className="mb-6 text-gray-400">Te esperamos en {negocio.nombre}</p>
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 text-left mb-6">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm"><span className="text-gray-500">Servicio</span><span className="text-white font-medium">{seleccion.servicio?.nombre}</span></div>
@@ -109,34 +111,59 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
 
-      {/* HEADER con color del negocio */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        {/* Barra de color arriba */}
-        <div style={{ height: '4px', background: color }} />
+      {/* LIGHTBOX GALERIA */}
+      {vistaGaleria && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setVistaGaleria(null)}>
+          <img src={vistaGaleria} alt="Foto" className="max-w-full max-h-full rounded-2xl object-contain" />
+          <button className="absolute top-4 right-4 text-white text-2xl">✕</button>
+        </div>
+      )}
 
+      {/* HEADER */}
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ height: '4px', background: color }} />
         <div className="px-5 py-5">
-          <div className="flex items-center justify-between mb-1">
-            <h1 className="text-2xl font-black">{negocio.nombre}</h1>
-            <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: color + '20', color }}>
-              Reservas online
-            </span>
+          <div className="flex items-center gap-4 mb-2">
+            {negocio.logo_url && (
+              <img src={negocio.logo_url} alt="Logo"
+                className="w-14 h-14 rounded-2xl object-cover flex-shrink-0 border border-white/10" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h1 className="text-2xl font-black truncate">{negocio.nombre}</h1>
+                <span className="text-xs px-3 py-1 rounded-full font-bold flex-shrink-0"
+                  style={{ background: color + '20', color }}>
+                  Online
+                </span>
+              </div>
+              {negocio.descripcion && (
+                <p className="text-gray-400 text-sm mt-0.5 line-clamp-2">{negocio.descripcion}</p>
+              )}
+            </div>
           </div>
-          {negocio.descripcion && (
-            <p className="text-gray-400 text-sm mt-1">{negocio.descripcion}</p>
-          )}
-          <div className="flex items-center gap-4 mt-3 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
             {negocio.direccion && (
-              <span className="text-gray-500 text-xs flex items-center gap-1">
-                📍 {negocio.direccion}
-              </span>
+              <span className="text-gray-500 text-xs">📍 {negocio.direccion}</span>
             )}
             {negocio.horario_apertura && negocio.horario_cierre && (
-              <span className="text-gray-500 text-xs flex items-center gap-1">
-                🕐 {negocio.horario_apertura.slice(0,5)} - {negocio.horario_cierre.slice(0,5)}
-              </span>
+              <span className="text-gray-500 text-xs">🕐 {negocio.horario_apertura.slice(0,5)} - {negocio.horario_cierre.slice(0,5)}</span>
             )}
           </div>
         </div>
+
+        {/* GALERIA - Solo Premium */}
+        {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
+          <div className="px-5 pb-5">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {negocio.galeria.map((url, i) => (
+                <img key={i} src={url} alt={'Foto ' + (i+1)}
+                  onClick={() => setVistaGaleria(url)}
+                  className="w-24 h-24 rounded-xl object-cover flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity border border-white/10" />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -145,10 +172,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           {[1,2,3,4].map(p => (
             <div key={p} className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-                style={{
-                  background: paso >= p ? color : '#1a1a1a',
-                  color: paso >= p ? '#000' : '#666'
-                }}>
+                style={{ background: paso >= p ? color : '#1a1a1a', color: paso >= p ? '#000' : '#666' }}>
                 {p}
               </div>
               {p < 4 && <div className="w-8 h-0.5" style={{ background: paso > p ? color : 'rgba(255,255,255,0.1)' }} />}
@@ -156,7 +180,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           ))}
         </div>
 
-        {/* PASO 1: SERVICIO */}
         {paso === 1 && (
           <div>
             <h2 className="text-xl font-black mb-1">Que servicio necesitas?</h2>
@@ -164,10 +187,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             <div className="flex flex-col gap-3">
               {servicios.map(s => (
                 <button key={s.id} onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
-                  className="bg-[#1a1a1a] border rounded-2xl px-5 py-4 flex items-center justify-between transition-all text-left hover:scale-[1.01]"
-                  style={{ borderColor: 'rgba(255,255,255,0.1)' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = color + '60'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}>
+                  className="bg-[#1a1a1a] border border-white/10 rounded-2xl px-5 py-4 flex items-center justify-between transition-all text-left hover:scale-[1.01]">
                   <div>
                     <div className="font-medium">{s.nombre}</div>
                     <div className="text-gray-500 text-sm">{s.duracion_minutos} min</div>
@@ -179,7 +199,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 2: EMPLEADO */}
         {paso === 2 && (
           <div>
             <h2 className="text-xl font-black mb-1">Con quien querés atenderte?</h2>
@@ -208,7 +227,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 3: FECHA Y HORA */}
         {paso === 3 && (
           <div>
             <h2 className="text-xl font-black mb-1">Cuando querés el turno?</h2>
@@ -251,7 +269,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 4: DATOS */}
         {paso === 4 && (
           <div>
             <h2 className="text-xl font-black mb-1">Tus datos</h2>
@@ -285,7 +302,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   ))}
                 </div>
               </div>
-
               <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4">
                 <div className="text-sm font-bold mb-3 text-gray-400">Resumen</div>
                 <div className="flex flex-col gap-2">
@@ -299,7 +315,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   </div>
                 </div>
               </div>
-
               <button onClick={confirmarTurno} disabled={!seleccion.nombre || !seleccion.whatsapp || guardando}
                 className="font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed text-black"
                 style={{ background: color }}>
@@ -311,7 +326,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="text-center py-6 border-t border-white/05">
         <p className="text-gray-600 text-xs">Powered by <span className="font-bold" style={{ color }}>Turnify</span></p>
       </div>
