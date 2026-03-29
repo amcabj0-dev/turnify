@@ -45,6 +45,13 @@ export default function Configuracion() {
     { v: '6', l: 'Sáb' },
   ]
 
+  const REDES = [
+    { key: 'instagram', label: 'Instagram', color: '#E1306C', placeholder: '@tunegocio' },
+    { key: 'facebook', label: 'Facebook', color: '#1877F2', placeholder: 'facebook.com/tunegocio' },
+    { key: 'tiktok', label: 'TikTok', color: '#ffffff', placeholder: '@tunegocio' },
+    { key: 'google_maps', label: 'Google Maps', color: '#EA4335', placeholder: 'Link de Google Maps' },
+  ]
+
   useEffect(() => {
     const negocioGuardado = JSON.parse(localStorage.getItem('negocio') || '{}')
     if (negocioGuardado.id) {
@@ -172,7 +179,6 @@ export default function Configuracion() {
 
   const coloresPreset = ['#c8f135','#3b82f6','#f43f5e','#f97316','#a855f7','#06b6d4','#10b981','#f59e0b']
   const esPremium = negocio?.plan === 'premium'
-
   const borderRadius = form.forma_botones === 'pill' ? '9999px' : form.forma_botones === 'redondeado' ? '12px' : '4px'
 
   return (
@@ -251,7 +257,7 @@ export default function Configuracion() {
               </div>
               <div>
                 <label className="text-gray-400 text-sm mb-1 block">Mensaje de confirmación</label>
-                <input type="text" placeholder="Ej: ¡Gracias! Te esperamos. Ante cualquier cambio avisanos."
+                <input type="text" placeholder="Ej: ¡Gracias! Te esperamos pronto."
                   value={form.mensaje_confirmacion} onChange={e => setForm({...form, mensaje_confirmacion: e.target.value})}
                   className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors" />
               </div>
@@ -261,15 +267,12 @@ export default function Configuracion() {
           {/* REDES SOCIALES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">📱 Redes sociales</h3>
-            <div className="flex flex-col gap-4">
-              {[
-                { key: 'instagram', icon: '📸', placeholder: '@tunegocio' },
-                { key: 'facebook', icon: '👍', placeholder: 'facebook.com/tunegocio' },
-                { key: 'tiktok', icon: '🎵', placeholder: '@tunegocio' },
-                { key: 'google_maps', icon: '📍', placeholder: 'Link de Google Maps' },
-              ].map(red => (
+            <div className="flex flex-col gap-3">
+              {REDES.map(red => (
                 <div key={red.key} className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#c8f135] transition-colors">
-                  <span className="mr-3">{red.icon}</span>
+                  <span className="text-xs font-black mr-3 w-16 flex-shrink-0" style={{ color: red.color }}>
+                    {red.label.toUpperCase()}
+                  </span>
                   <input type="text" placeholder={red.placeholder} value={form[red.key]}
                     onChange={e => setForm({...form, [red.key]: e.target.value})}
                     className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm" />
@@ -282,8 +285,6 @@ export default function Configuracion() {
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">🎨 Personalización visual</h3>
             <div className="flex flex-col gap-5">
-
-              {/* Color */}
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Color principal</label>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -297,7 +298,6 @@ export default function Configuracion() {
                 </div>
               </div>
 
-              {/* Tema */}
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Tema de la página pública</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -315,7 +315,6 @@ export default function Configuracion() {
                 </div>
               </div>
 
-              {/* Fuente */}
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Fuente de texto</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -333,7 +332,6 @@ export default function Configuracion() {
                 </div>
               </div>
 
-              {/* Forma botones */}
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Forma de los botones</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -424,7 +422,7 @@ export default function Configuracion() {
             <p className="text-gray-600 text-xs mt-2">Sin el 0 y sin el 15</p>
           </div>
 
-          {/* GALERIA - Solo Premium */}
+          {/* GALERIA */}
           <div className={`bg-[#1a1a1a] border rounded-2xl p-6 ${esPremium ? 'border-white/10' : 'border-white/05 opacity-60'}`}>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold">📸 Galería de fotos</h3>
