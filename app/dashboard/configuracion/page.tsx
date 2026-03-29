@@ -13,6 +13,18 @@ export default function Configuracion() {
     color: '#c8f135',
     horario_apertura: '09:00',
     horario_cierre: '18:00',
+    tema: 'dark',
+    fuente: 'moderna',
+    forma_botones: 'pill',
+    mensaje_bienvenida: '',
+    mensaje_confirmacion: '',
+    instagram: '',
+    facebook: '',
+    tiktok: '',
+    google_maps: '',
+    dias_atencion: ['1','2','3','4','5'],
+    intervalo_turnos: 30,
+    turnos_simultaneos: 1,
   })
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
@@ -22,6 +34,16 @@ export default function Configuracion() {
   const [galeriaUrls, setGaleriaUrls] = useState([])
   const logoRef = useRef(null)
   const galeriaRef = useRef(null)
+
+  const DIAS = [
+    { v: '0', l: 'Dom' },
+    { v: '1', l: 'Lun' },
+    { v: '2', l: 'Mar' },
+    { v: '3', l: 'Mié' },
+    { v: '4', l: 'Jue' },
+    { v: '5', l: 'Vie' },
+    { v: '6', l: 'Sáb' },
+  ]
 
   useEffect(() => {
     const negocioGuardado = JSON.parse(localStorage.getItem('negocio') || '{}')
@@ -35,6 +57,18 @@ export default function Configuracion() {
         color: negocioGuardado.color || '#c8f135',
         horario_apertura: negocioGuardado.horario_apertura || '09:00',
         horario_cierre: negocioGuardado.horario_cierre || '18:00',
+        tema: negocioGuardado.tema || 'dark',
+        fuente: negocioGuardado.fuente || 'moderna',
+        forma_botones: negocioGuardado.forma_botones || 'pill',
+        mensaje_bienvenida: negocioGuardado.mensaje_bienvenida || '',
+        mensaje_confirmacion: negocioGuardado.mensaje_confirmacion || '',
+        instagram: negocioGuardado.instagram || '',
+        facebook: negocioGuardado.facebook || '',
+        tiktok: negocioGuardado.tiktok || '',
+        google_maps: negocioGuardado.google_maps || '',
+        dias_atencion: negocioGuardado.dias_atencion || ['1','2','3','4','5'],
+        intervalo_turnos: negocioGuardado.intervalo_turnos || 30,
+        turnos_simultaneos: negocioGuardado.turnos_simultaneos || 1,
       })
       setLogoUrl(negocioGuardado.logo_url || '')
       setGaleriaUrls(negocioGuardado.galeria || [])
@@ -42,6 +76,13 @@ export default function Configuracion() {
       window.location.href = '/login'
     }
   }, [])
+
+  const toggleDia = (dia) => {
+    const dias = form.dias_atencion.includes(dia)
+      ? form.dias_atencion.filter(d => d !== dia)
+      : [...form.dias_atencion, dia]
+    setForm({...form, dias_atencion: dias})
+  }
 
   const subirLogo = async (e) => {
     const file = e.target.files[0]
@@ -64,10 +105,7 @@ export default function Configuracion() {
   const subirFotoGaleria = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (galeriaUrls.length >= 6) {
-      alert('Máximo 6 fotos en la galería (plan Premium)')
-      return
-    }
+    if (galeriaUrls.length >= 6) { alert('Máximo 6 fotos'); return }
     setSubiendoFoto(true)
     const ext = file.name.split('.').pop()
     const path = negocio.id + '/galeria-' + Date.now() + '.' + ext
@@ -106,6 +144,18 @@ export default function Configuracion() {
         color: form.color,
         horario_apertura: form.horario_apertura,
         horario_cierre: form.horario_cierre,
+        tema: form.tema,
+        fuente: form.fuente,
+        forma_botones: form.forma_botones,
+        mensaje_bienvenida: form.mensaje_bienvenida,
+        mensaje_confirmacion: form.mensaje_confirmacion,
+        instagram: form.instagram,
+        facebook: form.facebook,
+        tiktok: form.tiktok,
+        google_maps: form.google_maps,
+        dias_atencion: form.dias_atencion,
+        intervalo_turnos: Number(form.intervalo_turnos),
+        turnos_simultaneos: Number(form.turnos_simultaneos),
       })
       .eq('id', negocio.id)
       .select()
@@ -120,15 +170,14 @@ export default function Configuracion() {
     setGuardando(false)
   }
 
-  const coloresPreset = [
-    '#c8f135', '#3b82f6', '#f43f5e', '#f97316',
-    '#a855f7', '#06b6d4', '#10b981', '#f59e0b'
-  ]
-
+  const coloresPreset = ['#c8f135','#3b82f6','#f43f5e','#f97316','#a855f7','#06b6d4','#10b981','#f59e0b']
   const esPremium = negocio?.plan === 'premium'
+
+  const borderRadius = form.forma_botones === 'pill' ? '9999px' : form.forma_botones === 'redondeado' ? '12px' : '4px'
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div style={{ height: '3px', background: form.color }} />
       <nav className="border-b border-white/10 px-4 py-4 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">←</Link>
@@ -142,7 +191,7 @@ export default function Configuracion() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-black mb-1">Configuración</h2>
-          <p className="text-gray-400">Personalizá cómo se ve tu negocio para tus clientes</p>
+          <p className="text-gray-400">Personalizá tu negocio al máximo</p>
         </div>
 
         <form onSubmit={guardar} className="flex flex-col gap-5">
@@ -153,11 +202,7 @@ export default function Configuracion() {
             <p className="text-gray-500 text-sm mb-4">Se muestra en tu página pública</p>
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 bg-[#0a0a0a] border border-white/10 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-3xl">🏪</span>
-                )}
+                {logoUrl ? <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" /> : <span className="text-3xl">🏪</span>}
               </div>
               <div>
                 <button type="button" onClick={() => logoRef.current?.click()}
@@ -175,66 +220,193 @@ export default function Configuracion() {
             <h3 className="font-bold mb-4">📋 Datos del negocio</h3>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Nombre del negocio</label>
-                <input type="text" value={form.nombre}
-                  onChange={e => setForm({...form, nombre: e.target.value})}
-                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors"
-                  required />
+                <label className="text-gray-400 text-sm mb-1 block">Nombre</label>
+                <input type="text" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})}
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" required />
               </div>
               <div>
                 <label className="text-gray-400 text-sm mb-1 block">Descripción</label>
-                <textarea placeholder="Ej: Somos una peluquería especializada en cortes modernos..."
-                  value={form.descripcion}
-                  onChange={e => setForm({...form, descripcion: e.target.value})}
-                  rows={3}
+                <textarea placeholder="Contale a tus clientes quiénes son..." value={form.descripcion}
+                  onChange={e => setForm({...form, descripcion: e.target.value})} rows={3}
                   className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors resize-none" />
               </div>
               <div>
                 <label className="text-gray-400 text-sm mb-1 block">Dirección</label>
-                <input type="text" placeholder="Ej: Av. 28 de Julio 100, Puerto Madryn"
-                  value={form.direccion}
+                <input type="text" placeholder="Ej: Av. 28 de Julio 100" value={form.direccion}
                   onChange={e => setForm({...form, direccion: e.target.value})}
                   className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors" />
               </div>
             </div>
           </div>
 
-          {/* COLOR */}
+          {/* MENSAJES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
-            <h3 className="font-bold mb-1">🎨 Color del negocio</h3>
-            <p className="text-gray-500 text-sm mb-4">Este color se va a ver en tu página pública</p>
-            <div className="flex items-center gap-3 flex-wrap">
-              {coloresPreset.map(c => (
-                <button key={c} type="button" onClick={() => setForm({...form, color: c})}
-                  className="w-10 h-10 rounded-full border-2 transition-transform hover:scale-110"
-                  style={{ background: c, borderColor: form.color === c ? 'white' : 'transparent' }} />
-              ))}
-              <input type="color" value={form.color}
-                onChange={e => setForm({...form, color: e.target.value})}
-                className="w-10 h-10 rounded-full cursor-pointer border-0 bg-transparent" />
-            </div>
-            <div className="mt-4 bg-[#0a0a0a] border border-white/10 rounded-xl p-3 flex items-center gap-3">
-              <div className="w-4 h-4 rounded-full" style={{ background: form.color }}></div>
-              <span className="text-sm text-gray-400">Vista previa: </span>
-              <span className="font-black" style={{ color: form.color }}>Tu negocio</span>
+            <h3 className="font-bold mb-4">💬 Mensajes personalizados</h3>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-gray-400 text-sm mb-1 block">Mensaje de bienvenida</label>
+                <input type="text" placeholder="Ej: ¡Bienvenido! Reservá tu turno en segundos"
+                  value={form.mensaje_bienvenida} onChange={e => setForm({...form, mensaje_bienvenida: e.target.value})}
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors" />
+              </div>
+              <div>
+                <label className="text-gray-400 text-sm mb-1 block">Mensaje de confirmación</label>
+                <input type="text" placeholder="Ej: ¡Gracias! Te esperamos. Ante cualquier cambio avisanos."
+                  value={form.mensaje_confirmacion} onChange={e => setForm({...form, mensaje_confirmacion: e.target.value})}
+                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors" />
+              </div>
             </div>
           </div>
 
-          {/* HORARIOS */}
+          {/* REDES SOCIALES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
-            <h3 className="font-bold mb-4">🕐 Horarios de atención</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="font-bold mb-4">📱 Redes sociales</h3>
+            <div className="flex flex-col gap-4">
+              {[
+                { key: 'instagram', icon: '📸', placeholder: '@tunegocio' },
+                { key: 'facebook', icon: '👍', placeholder: 'facebook.com/tunegocio' },
+                { key: 'tiktok', icon: '🎵', placeholder: '@tunegocio' },
+                { key: 'google_maps', icon: '📍', placeholder: 'Link de Google Maps' },
+              ].map(red => (
+                <div key={red.key} className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#c8f135] transition-colors">
+                  <span className="mr-3">{red.icon}</span>
+                  <input type="text" placeholder={red.placeholder} value={form[red.key]}
+                    onChange={e => setForm({...form, [red.key]: e.target.value})}
+                    className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* PERSONALIZACIÓN VISUAL */}
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
+            <h3 className="font-bold mb-4">🎨 Personalización visual</h3>
+            <div className="flex flex-col gap-5">
+
+              {/* Color */}
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Apertura</label>
-                <input type="time" value={form.horario_apertura}
-                  onChange={e => setForm({...form, horario_apertura: e.target.value})}
-                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" />
+                <label className="text-gray-400 text-sm mb-3 block">Color principal</label>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {coloresPreset.map(c => (
+                    <button key={c} type="button" onClick={() => setForm({...form, color: c})}
+                      className="w-10 h-10 rounded-full border-2 transition-transform hover:scale-110"
+                      style={{ background: c, borderColor: form.color === c ? 'white' : 'transparent' }} />
+                  ))}
+                  <input type="color" value={form.color} onChange={e => setForm({...form, color: e.target.value})}
+                    className="w-10 h-10 rounded-full cursor-pointer border-0 bg-transparent" />
+                </div>
               </div>
+
+              {/* Tema */}
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Cierre</label>
-                <input type="time" value={form.horario_cierre}
-                  onChange={e => setForm({...form, horario_cierre: e.target.value})}
-                  className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" />
+                <label className="text-gray-400 text-sm mb-3 block">Tema de la página pública</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { v: 'dark', l: '🌑 Oscuro', desc: 'Fondo negro' },
+                    { v: 'light', l: '☀️ Claro', desc: 'Fondo blanco' },
+                  ].map(t => (
+                    <button key={t.v} type="button" onClick={() => setForm({...form, tema: t.v})}
+                      className="border rounded-xl p-3 text-left transition-colors"
+                      style={{ borderColor: form.tema === t.v ? form.color : 'rgba(255,255,255,0.1)', background: form.tema === t.v ? form.color + '15' : 'transparent' }}>
+                      <div className="font-bold text-sm">{t.l}</div>
+                      <div className="text-gray-500 text-xs">{t.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fuente */}
+              <div>
+                <label className="text-gray-400 text-sm mb-3 block">Fuente de texto</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { v: 'moderna', l: 'Moderna' },
+                    { v: 'clasica', l: 'Clásica' },
+                    { v: 'elegante', l: 'Elegante' },
+                  ].map(f => (
+                    <button key={f.v} type="button" onClick={() => setForm({...form, fuente: f.v})}
+                      className="border rounded-xl py-2 px-3 text-sm font-medium transition-colors"
+                      style={{ borderColor: form.fuente === f.v ? form.color : 'rgba(255,255,255,0.1)', background: form.fuente === f.v ? form.color + '15' : 'transparent', color: form.fuente === f.v ? form.color : '#9ca3af' }}>
+                      {f.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Forma botones */}
+              <div>
+                <label className="text-gray-400 text-sm mb-3 block">Forma de los botones</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { v: 'pill', l: 'Pill' },
+                    { v: 'redondeado', l: 'Redondeado' },
+                    { v: 'cuadrado', l: 'Cuadrado' },
+                  ].map(b => (
+                    <button key={b.v} type="button" onClick={() => setForm({...form, forma_botones: b.v})}
+                      className="border py-2 px-3 text-sm font-medium transition-colors"
+                      style={{
+                        borderRadius: b.v === 'pill' ? '9999px' : b.v === 'redondeado' ? '12px' : '4px',
+                        borderColor: form.forma_botones === b.v ? form.color : 'rgba(255,255,255,0.1)',
+                        background: form.forma_botones === b.v ? form.color + '15' : 'transparent',
+                        color: form.forma_botones === b.v ? form.color : '#9ca3af'
+                      }}>
+                      {b.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* HORARIOS Y DÍAS */}
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
+            <h3 className="font-bold mb-4">🕐 Horarios y días</h3>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-gray-400 text-sm mb-3 block">Días de atención</label>
+                <div className="flex gap-2 flex-wrap">
+                  {DIAS.map(d => (
+                    <button key={d.v} type="button" onClick={() => toggleDia(d.v)}
+                      className="px-3 py-2 rounded-xl text-sm font-bold border transition-colors"
+                      style={{
+                        background: form.dias_atencion.includes(d.v) ? form.color : 'transparent',
+                        color: form.dias_atencion.includes(d.v) ? '#000' : '#9ca3af',
+                        borderColor: form.dias_atencion.includes(d.v) ? form.color : 'rgba(255,255,255,0.1)'
+                      }}>
+                      {d.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">Apertura</label>
+                  <input type="time" value={form.horario_apertura}
+                    onChange={e => setForm({...form, horario_apertura: e.target.value})}
+                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" />
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">Cierre</label>
+                  <input type="time" value={form.horario_cierre}
+                    onChange={e => setForm({...form, horario_cierre: e.target.value})}
+                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">Intervalo entre turnos</label>
+                  <select value={form.intervalo_turnos} onChange={e => setForm({...form, intervalo_turnos: Number(e.target.value)})}
+                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors">
+                    {[15,30,45,60].map(m => <option key={m} value={m}>{m} minutos</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">Turnos simultáneos</label>
+                  <select value={form.turnos_simultaneos} onChange={e => setForm({...form, turnos_simultaneos: Number(e.target.value)})}
+                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors">
+                    {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -256,14 +428,9 @@ export default function Configuracion() {
           <div className={`bg-[#1a1a1a] border rounded-2xl p-6 ${esPremium ? 'border-white/10' : 'border-white/05 opacity-60'}`}>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold">📸 Galería de fotos</h3>
-              {!esPremium && (
-                <span className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-1 rounded-full font-bold">
-                  ⭐ Premium
-                </span>
-              )}
+              {!esPremium && <span className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-1 rounded-full font-bold">⭐ Premium</span>}
             </div>
-            <p className="text-gray-500 text-sm mb-4">Mostrá fotos de tu trabajo a los clientes · Máx 6 fotos</p>
-
+            <p className="text-gray-500 text-sm mb-4">Mostrá fotos de tu trabajo · Máx 6 fotos</p>
             {esPremium ? (
               <>
                 <div className="grid grid-cols-3 gap-2 mb-3">
@@ -271,9 +438,7 @@ export default function Configuracion() {
                     <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
                       <img src={url} alt={'Foto ' + (i+1)} className="w-full h-full object-cover" />
                       <button type="button" onClick={() => eliminarFotoGaleria(url)}
-                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-red-400 text-xl">
-                        🗑
-                      </button>
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-red-400 text-xl">🗑</button>
                     </div>
                   ))}
                   {galeriaUrls.length < 6 && (
@@ -287,15 +452,13 @@ export default function Configuracion() {
                 <input ref={galeriaRef} type="file" accept="image/*" onChange={subirFotoGaleria} className="hidden" />
               </>
             ) : (
-              <div className="text-center py-6 text-gray-600 text-sm">
-                Actualizá al plan Premium para agregar fotos de tu trabajo
-              </div>
+              <div className="text-center py-6 text-gray-600 text-sm">Actualizá al plan Premium para agregar fotos</div>
             )}
           </div>
 
           <button type="submit" disabled={guardando}
-            className="font-bold py-4 rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 text-black"
-            style={{ background: form.color }}>
+            className="font-bold py-4 hover:scale-[1.02] transition-transform disabled:opacity-50 text-black"
+            style={{ background: form.color, borderRadius }}>
             {guardado ? '✅ Guardado!' : guardando ? 'Guardando...' : 'Guardar cambios'}
           </button>
 
