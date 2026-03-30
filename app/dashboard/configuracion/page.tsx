@@ -96,8 +96,8 @@ export default function Configuracion() {
     if (!file) return
     setSubiendoLogo(true)
     const ext = file.name.split('.').pop()
-    const path = negocio.id + '/logo.' + ext
-    const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
+    const path = negocio.id + '/logo-' + Date.now() + '.' + ext
+    const { error } = await supabase.storage.from('logos').upload(path, file)
     if (!error) {
       const { data } = supabase.storage.from('logos').getPublicUrl(path)
       setLogoUrl(data.publicUrl)
@@ -105,6 +105,8 @@ export default function Configuracion() {
       const updated = { ...negocio, logo_url: data.publicUrl }
       localStorage.setItem('negocio', JSON.stringify(updated))
       setNegocio(updated)
+    } else {
+      alert('Error al subir: ' + error.message)
     }
     setSubiendoLogo(false)
   }
@@ -116,7 +118,7 @@ export default function Configuracion() {
     setSubiendoFoto(true)
     const ext = file.name.split('.').pop()
     const path = negocio.id + '/galeria-' + Date.now() + '.' + ext
-    const { error } = await supabase.storage.from('galerias').upload(path, file, { upsert: true })
+    const { error } = await supabase.storage.from('galerias').upload(path, file)
     if (!error) {
       const { data } = supabase.storage.from('galerias').getPublicUrl(path)
       const nuevaGaleria = [...galeriaUrls, data.publicUrl]
@@ -125,6 +127,8 @@ export default function Configuracion() {
       const updated = { ...negocio, galeria: nuevaGaleria }
       localStorage.setItem('negocio', JSON.stringify(updated))
       setNegocio(updated)
+    } else {
+      alert('Error al subir: ' + error.message)
     }
     setSubiendoFoto(false)
   }
