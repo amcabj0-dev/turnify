@@ -108,7 +108,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color, fontWeight: 'bold', animation: 'pulse 1s infinite' }}>Cargando...</div>
+      <div style={{ color, fontWeight: 'bold' }}>Cargando...</div>
     </div>
   )
 
@@ -120,7 +120,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
   if (confirmado) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: fuente }}>
-      <div style={{ textAlign: 'center', maxWidth: '360px', width: '100%' }}>
+      <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%' }}>
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: textColor, marginBottom: '0.5rem' }}>Turno confirmado!</h2>
         <p style={{ color: mutedColor, marginBottom: '1rem' }}>
@@ -160,38 +160,36 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       )}
 
+      {/* BARRA COLOR */}
+      <div style={{ height: '4px', background: color }} />
+
       {/* HEADER */}
-      <div style={{ borderBottom: '1px solid ' + cardBorder }}>
-        <div style={{ height: '4px', background: color }} />
-        <div style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+      <div style={{ borderBottom: '1px solid ' + cardBorder, background: bgColor }}>
+        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.25rem 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
             {negocio.logo_url && (
               <img src={negocio.logo_url} alt="Logo"
                 style={{ width: '56px', height: '56px', borderRadius: '16px', objectFit: 'cover', flexShrink: 0, border: '1px solid ' + cardBorder }} />
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: '900', margin: 0 }}>{negocio.nombre}</h1>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: '900', margin: 0, color: textColor }}>{negocio.nombre}</h1>
                 <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontWeight: '700', background: color + '20', color, flexShrink: 0 }}>
                   Online
                 </span>
               </div>
-              {negocio.mensaje_bienvenida && (
-                <p style={{ color: mutedColor, fontSize: '0.875rem', margin: '0.25rem 0 0' }}>{negocio.mensaje_bienvenida}</p>
-              )}
-              {!negocio.mensaje_bienvenida && negocio.descripcion && (
-                <p style={{ color: mutedColor, fontSize: '0.875rem', margin: '0.25rem 0 0' }}>{negocio.descripcion}</p>
+              {(negocio.mensaje_bienvenida || negocio.descripcion) && (
+                <p style={{ color: mutedColor, fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+                  {negocio.mensaje_bienvenida || negocio.descripcion}
+                </p>
               )}
             </div>
           </div>
 
-          {/* INFO */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
             {negocio.direccion && <span style={{ color: mutedColor, fontSize: '0.75rem' }}>📍 {negocio.direccion}</span>}
             {negocio.horario_apertura && negocio.horario_cierre && (
-              <span style={{ color: mutedColor, fontSize: '0.75rem' }}>
-                🕐 {negocio.horario_apertura.slice(0,5)} - {negocio.horario_cierre.slice(0,5)}
-              </span>
+              <span style={{ color: mutedColor, fontSize: '0.75rem' }}>🕐 {negocio.horario_apertura.slice(0,5)} - {negocio.horario_cierre.slice(0,5)}</span>
             )}
             {negocio.dias_atencion && negocio.dias_atencion.length > 0 && (
               <span style={{ color: mutedColor, fontSize: '0.75rem' }}>
@@ -200,8 +198,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             )}
           </div>
 
-          {/* REDES */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {negocio.instagram && (
               <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer"
                 style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#E1306C20', color: '#E1306C', textDecoration: 'none' }}>
@@ -227,51 +224,39 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               </a>
             )}
           </div>
-        </div>
 
-        {/* GALERIA */}
-        {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
-          <div style={{ padding: '0 1.25rem 1.25rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+          {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
+            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
               {negocio.galeria.map((url, i) => (
                 <img key={i} src={url} alt={'Foto ' + (i+1)} onClick={() => setVistaGaleria(url)}
                   style={{ width: '96px', height: '96px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '1px solid ' + cardBorder }} />
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
+      {/* CONTENIDO CENTRADO */}
       <div style={{ maxWidth: '480px', margin: '0 auto', padding: '2rem 1rem' }}>
 
         {/* PASOS */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
           {[1,2,3,4].map(p => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{
-                width: '28px', height: '28px', borderRadius: '9999px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.75rem', fontWeight: '700',
-                background: paso >= p ? color : cardBg,
-                color: paso >= p ? '#000' : mutedColor,
-                border: '1px solid ' + (paso >= p ? color : cardBorder)
-              }}>{p}</div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: '700', background: paso >= p ? color : cardBg, color: paso >= p ? '#000' : mutedColor, border: '1px solid ' + (paso >= p ? color : cardBorder) }}>{p}</div>
               {p < 4 && <div style={{ width: '2rem', height: '2px', background: paso > p ? color : cardBorder }} />}
             </div>
           ))}
         </div>
 
-        {/* PASO 1 */}
         {paso === 1 && (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem' }}>Que servicio necesitas?</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem', color: textColor }}>Que servicio necesitas?</h2>
             <p style={{ color: mutedColor, fontSize: '0.875rem', marginBottom: '1.5rem' }}>Elegí el servicio que querés reservar</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {servicios.map(s => (
                 <button key={s.id} onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
-                  style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', transition: 'transform 0.1s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = color + '60'; e.currentTarget.style.transform = 'scale(1.01)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.transform = 'scale(1)' }}>
+                  style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                   <div>
                     <div style={{ fontWeight: '600', color: textColor }}>{s.nombre}</div>
                     <div style={{ color: mutedColor, fontSize: '0.875rem' }}>{s.duracion_minutos} min</div>
@@ -283,14 +268,13 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 2 */}
         {paso === 2 && (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem' }}>Con quien querés atenderte?</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem', color: textColor }}>Con quien querés atenderte?</h2>
             <p style={{ color: mutedColor, fontSize: '0.875rem', marginBottom: '1.5rem' }}>Elegí o dejá asignación automática</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button onClick={() => { setSeleccion({...seleccion, empleado: null}); setPaso(3) }}
-                style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left' }}>
+                style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '9999px', background: cardBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', flexShrink: 0 }}>✨</div>
                 <div>
                   <div style={{ fontWeight: '600', color: textColor }}>Sin preferencia</div>
@@ -299,7 +283,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               </button>
               {empleados.map(e => (
                 <button key={e.id} onClick={() => { setSeleccion({...seleccion, empleado: e}); setPaso(3) }}
-                  style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left' }}>
+                  style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '9999px', background: color + '20', border: '1px solid ' + color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '700', fontSize: '0.875rem', flexShrink: 0 }}>
                     {e.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}
                   </div>
@@ -311,10 +295,9 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 3 */}
         {paso === 3 && (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem' }}>Cuando querés el turno?</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem', color: textColor }}>Cuando querés el turno?</h2>
             <p style={{ color: mutedColor, fontSize: '0.875rem', marginBottom: '1.5rem' }}>Elegí día y horario</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
@@ -327,7 +310,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                       alert('El negocio no atiende ese día')
                     }
                   }}
-                  style={{ width: '100%', background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none', colorScheme: tema === 'dark' ? 'dark' : 'light' }} />
+                  style={{ width: '100%', background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none', colorScheme: tema === 'dark' ? 'dark' : 'light', boxSizing: 'border-box' }} />
               </div>
               {seleccion.fecha && (
                 <div>
@@ -335,12 +318,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
                     {generarHoras().map(h => (
                       <button key={h} onClick={() => setSeleccion({...seleccion, hora: h})}
-                        style={{
-                          padding: '0.5rem', borderRadius, fontSize: '0.875rem', fontWeight: '500', cursor: 'pointer', border: '1px solid',
-                          background: seleccion.hora === h ? color : cardBg,
-                          color: seleccion.hora === h ? '#000' : textColor,
-                          borderColor: seleccion.hora === h ? color : cardBorder
-                        }}>
+                        style={{ padding: '0.5rem', borderRadius, fontSize: '0.875rem', fontWeight: '500', cursor: 'pointer', border: '1px solid', background: seleccion.hora === h ? color : cardBg, color: seleccion.hora === h ? '#000' : textColor, borderColor: seleccion.hora === h ? color : cardBorder }}>
                         {h}
                       </button>
                     ))}
@@ -358,23 +336,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 4 */}
         {paso === 4 && (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem' }}>Tus datos</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem', color: textColor }}>Tus datos</h2>
             <p style={{ color: mutedColor, fontSize: '0.875rem', marginBottom: '1.5rem' }}>Para confirmar el turno</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ color: mutedColor, fontSize: '0.875rem', display: 'block', marginBottom: '0.25rem' }}>Tu nombre</label>
                 <input type="text" placeholder="Nombre completo" value={seleccion.nombre}
                   onChange={e => setSeleccion({...seleccion, nombre: e.target.value})}
-                  style={{ width: '100%', background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none' }} />
+                  style={{ width: '100%', background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
                 <label style={{ color: mutedColor, fontSize: '0.875rem', display: 'block', marginBottom: '0.25rem' }}>WhatsApp</label>
                 <input type="tel" placeholder="Ej: 2804001234" value={seleccion.whatsapp}
                   onChange={e => setSeleccion({...seleccion, whatsapp: e.target.value})}
-                  style={{ width: '100%', background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none' }} />
+                  style={{ width: '100%', background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
                 <label style={{ color: mutedColor, fontSize: '0.875rem', display: 'block', marginBottom: '0.5rem' }}>Forma de pago</label>
@@ -387,7 +364,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   ))}
                 </div>
               </div>
-
               <div style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '16px', padding: '1rem' }}>
                 <div style={{ fontSize: '0.875rem', fontWeight: '700', color: mutedColor, marginBottom: '0.75rem' }}>Resumen</div>
                 {[
@@ -403,7 +379,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   </div>
                 ))}
               </div>
-
               <button onClick={confirmarTurno} disabled={!seleccion.nombre || !seleccion.whatsapp || guardando}
                 style={{ background: color, color: '#000', fontWeight: '700', padding: '0.75rem', borderRadius, border: 'none', cursor: 'pointer', fontSize: '1rem', opacity: (!seleccion.nombre || !seleccion.whatsapp || guardando) ? 0.5 : 1 }}>
                 {guardando ? 'Confirmando...' : '✅ Confirmar turno'}

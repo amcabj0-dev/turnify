@@ -206,7 +206,6 @@ export default function Configuracion() {
 
         <form onSubmit={guardar} className="flex flex-col gap-5">
 
-          {/* LOGO */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-1">🖼️ Logo del negocio</h3>
             <p className="text-gray-500 text-sm mb-4">Se muestra en tu página pública</p>
@@ -225,7 +224,6 @@ export default function Configuracion() {
             </div>
           </div>
 
-          {/* DATOS BÁSICOS */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">📋 Datos del negocio</h3>
             <div className="flex flex-col gap-4">
@@ -249,7 +247,6 @@ export default function Configuracion() {
             </div>
           </div>
 
-          {/* MENSAJES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">💬 Mensajes personalizados</h3>
             <div className="flex flex-col gap-4">
@@ -268,7 +265,6 @@ export default function Configuracion() {
             </div>
           </div>
 
-          {/* REDES SOCIALES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">📱 Redes sociales</h3>
             <div className="flex flex-col gap-3">
@@ -285,7 +281,6 @@ export default function Configuracion() {
             </div>
           </div>
 
-          {/* PERSONALIZACIÓN VISUAL */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">🎨 Personalización visual</h3>
             <div className="flex flex-col gap-5">
@@ -301,7 +296,6 @@ export default function Configuracion() {
                     className="w-10 h-10 rounded-full cursor-pointer border-0 bg-transparent" />
                 </div>
               </div>
-
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Tema de la página pública</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -318,7 +312,6 @@ export default function Configuracion() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Fuente de texto</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -335,7 +328,6 @@ export default function Configuracion() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Forma de los botones</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -360,7 +352,6 @@ export default function Configuracion() {
             </div>
           </div>
 
-          {/* HORARIOS Y DÍAS */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">🕐 Horarios y días</h3>
             <div className="flex flex-col gap-4">
@@ -413,7 +404,6 @@ export default function Configuracion() {
             </div>
           </div>
 
-          {/* WHATSAPP */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-1">📱 Notificaciones WhatsApp</h3>
             <p className="text-gray-500 text-sm mb-4">Te avisamos cuando un cliente saca un turno</p>
@@ -426,7 +416,6 @@ export default function Configuracion() {
             <p className="text-gray-600 text-xs mt-2">Sin el 0 y sin el 15</p>
           </div>
 
-          {/* GALERIA */}
           <div className={`bg-[#1a1a1a] border rounded-2xl p-6 ${esPremium ? 'border-white/10' : 'border-white/05 opacity-60'}`}>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold">📸 Galería de fotos</h3>

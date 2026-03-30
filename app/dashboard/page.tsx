@@ -6,19 +6,16 @@ import Link from 'next/link'
 export default function Dashboard() {
   const [negocio, setNegocio] = useState(null)
   const [turnos, setTurnos] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('hoy')
   const [copiado, setCopiado] = useState(false)
+  const [tab, setTab] = useState('inicio')
   const turnosRef = useRef(null)
 
   useEffect(() => {
-    const negocioGuardado = JSON.parse(localStorage.getItem('negocio') || '{}')
-    if (negocioGuardado.id) {
-      setNegocio(negocioGuardado)
-      cargarTurnos(negocioGuardado.id)
-    } else {
-      window.location.href = '/login'
-    }
+    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
+    if (n.id) { setNegocio(n); cargarTurnos(n.id) }
+    else window.location.href = '/login'
   }, [])
 
   const cargarTurnos = async (id) => {
@@ -33,41 +30,37 @@ export default function Dashboard() {
 
   const cambiarEstado = async (id, estado) => {
     await supabase.from('turnos').update({ estado }).eq('id', id)
-    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
-    cargarTurnos(n.id)
+    cargarTurnos(JSON.parse(localStorage.getItem('negocio') || '{}').id)
   }
 
   const marcarPagado = async (id, pagado) => {
     await supabase.from('turnos').update({ pagado: !pagado }).eq('id', id)
-    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
-    cargarTurnos(n.id)
+    cargarTurnos(JSON.parse(localStorage.getItem('negocio') || '{}').id)
   }
 
-  const cerrarSesion = () => {
-    localStorage.clear()
-    window.location.href = '/login'
-  }
+  const cerrarSesion = () => { localStorage.clear(); window.location.href = '/login' }
 
   const copiarLink = () => {
-    const link = 'https://turnify-omega.vercel.app/b/' + (negocio?.slug || '')
-    const el = document.createElement('textarea')
-    el.value = link
-    document.body.appendChild(el)
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
+    const link = 'https://tuturnofy.vercel.app/b/' + (negocio?.slug || '')
+    navigator.clipboard?.writeText(link).catch(() => {
+      const el = document.createElement('textarea')
+      el.value = link
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    })
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
   }
 
   const scrollATurnos = (nuevoFiltro) => {
     setFiltro(nuevoFiltro)
-    setTimeout(() => {
-      turnosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 100)
+    setTab('turnos')
+    setTimeout(() => turnosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
-  const color = negocio?.color || '#c8f135'
+  const color = negocio?.color || '#4f8ef7'
   const hoy = new Date().toDateString()
   const manana = new Date(Date.now() + 86400000).toDateString()
 
@@ -88,187 +81,227 @@ export default function Dashboard() {
   const turnosPendientes = turnos.filter(t => t.estado === 'pendiente')
   const ingresosMes = turnos.filter(t => t.pagado).reduce((acc, t) => acc + Number(t.monto), 0)
 
-  const estadoColor = (estado) => {
-    if (estado === 'confirmado') return 'bg-green-500/10 text-green-400 border-green-500/20'
-    if (estado === 'cancelado') return 'bg-red-500/10 text-red-400 border-red-500/20'
-    if (estado === 'completado') return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-    return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+  const estadoPill = (estado) => {
+    if (estado === 'confirmado') return { bg: 'rgba(0,229,160,0.12)', color: '#00e5a0', border: 'rgba(0,229,160,0.25)' }
+    if (estado === 'cancelado') return { bg: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: 'rgba(255,107,107,0.25)' }
+    if (estado === 'completado') return { bg: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: 'rgba(79,142,247,0.25)' }
+    return { bg: 'rgba(255,209,102,0.12)', color: '#ffd166', border: 'rgba(255,209,102,0.25)' }
+  }
+
+  const styles: any = {
+    app: { minHeight: '100vh', background: '#090d1a', color: '#e8edf8', fontFamily: "'DM Sans', sans-serif", paddingBottom: '80px' },
+    nav: { background: '#0f1628', borderBottom: '1px solid rgba(79,142,247,0.15)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky' as const, top: 0, zIndex: 50 },
+    logo: { fontSize: '20px', fontWeight: 800, fontFamily: "'Syne', sans-serif", background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
+    content: { padding: '14px 14px 0', display: 'flex', flexDirection: 'column' as const, gap: '12px' },
+    card: { background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' },
+    cardTitle: { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    bottomNav: { position: 'fixed' as const, bottom: 0, left: 0, right: 0, background: '#0f1628', borderTop: '1px solid rgba(79,142,247,0.15)', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0 14px', zIndex: 100 },
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-      <div className="animate-pulse font-bold text-xl" style={{ color }}>Cargando...</div>
+    <div style={{ minHeight: '100vh', background: '#090d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        Cargando...
+      </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <div style={{ height: '3px', background: color }} />
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+        .nav-btn { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; color:#6b7fa3; font-size:9px; font-family:'DM Sans',sans-serif; border:none; background:none; padding:0 8px; }
+        .nav-btn.active { color:#4f8ef7; }
+        .nav-btn svg { width:20px; height:20px; }
+        .stat-card-scroll { min-width:130px; background:#0f1628; border:1px solid rgba(79,142,247,0.15); border-radius:12px; padding:13px; flex-shrink:0; cursor:pointer; transition:border-color 0.2s; }
+        .stat-card-scroll:hover { border-color:rgba(79,142,247,0.4); }
+        .turno-row { padding:10px 0; border-bottom:1px solid rgba(79,142,247,0.1); display:flex; align-items:center; gap:10px; }
+        .turno-row:last-child { border-bottom:none; }
+        .filter-tab { padding:5px 10px; border-radius:8px; font-size:11px; font-weight:500; color:#6b7fa3; cursor:pointer; border:none; background:none; font-family:'DM Sans',sans-serif; }
+        .filter-tab.active { background:rgba(79,142,247,0.15); color:#4f8ef7; }
+        .action-btn { padding:3px 8px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; }
+        .menu-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; background:#0a0f1e; border:1px solid rgba(79,142,247,0.1); cursor:pointer; transition:border-color 0.2s; }
+        .menu-item:hover { border-color:rgba(79,142,247,0.3); }
+        .badge { font-size:10px; padding:2px 7px; border-radius:20px; }
+      `}</style>
 
-      <nav className="border-b border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 bg-[#0a0a0a] z-10">
-        <a href="/dashboard" className="text-lg font-black hover:opacity-80 transition-opacity">
-          Turn<span style={{ color }}>ify</span>
-        </a>
-        <button onClick={cerrarSesion} className="text-gray-400 text-xs">Salir</button>
-      </nav>
+      <div style={styles.app}>
 
-      <div className="px-4 py-5">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-xl font-black">Buen día 👋</h2>
-            <p className="text-gray-500 text-xs">{negocio?.nombre}</p>
+        {/* NAV */}
+        <div style={styles.nav}>
+          <div style={styles.logo}>Turnify</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '20px', background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)', fontWeight: 600 }}>
+              {negocio?.plan?.toUpperCase() || 'BÁSICO'}
+            </div>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#4f8ef7,#7c5af7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+              onClick={cerrarSesion}>
+              {negocio?.nombre?.[0]?.toUpperCase() || 'N'}
+            </div>
           </div>
-          <a href={'/b/' + negocio?.slug} target="_blank" rel="noreferrer"
-            className="text-black text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0"
-            style={{ background: color }}>
-            Ver página
-          </a>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <button onClick={() => scrollATurnos('hoy')}
-            className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/30 transition-colors active:scale-95"
-            style={{ borderColor: filtro === 'hoy' ? color : '' }}>
-            <div className="text-lg mb-1">📅</div>
-            <div className="text-xl font-black" style={{ color }}>{turnosHoy.length}</div>
-            <div className="text-gray-500 text-xs mt-0.5">Turnos hoy</div>
-          </button>
+        <div style={styles.content}>
 
-          <button onClick={() => scrollATurnos('pendientes')}
-            className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/30 transition-colors active:scale-95"
-            style={{ borderColor: filtro === 'pendientes' ? '#facc15' : '' }}>
-            <div className="text-lg mb-1">⏳</div>
-            <div className="text-xl font-black text-yellow-400">{turnosPendientes.length}</div>
-            <div className="text-gray-500 text-xs mt-0.5">Pendientes</div>
-          </button>
+          {/* GREETING */}
+          <div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '17px', fontWeight: 800 }}>Buen día 👋</h2>
+            <p style={{ color: '#6b7fa3', fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00e5a0', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+              {negocio?.nombre} · {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+          </div>
 
-          <button onClick={() => scrollATurnos('todos')}
-            className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/30 transition-colors active:scale-95"
-            style={{ borderColor: filtro === 'todos' ? '#60a5fa' : '' }}>
-            <div className="text-lg mb-1">📊</div>
-            <div className="text-xl font-black text-blue-400">{turnos.length}</div>
-            <div className="text-gray-500 text-xs mt-0.5">Total turnos</div>
-          </button>
-
-          <button onClick={() => scrollATurnos('pagados')}
-            className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 text-left hover:border-white/30 transition-colors active:scale-95"
-            style={{ borderColor: filtro === 'pagados' ? '#4ade80' : '' }}>
-            <div className="text-lg mb-1">💰</div>
-            <div className="text-xl font-black text-green-400">${ingresosMes.toLocaleString()}</div>
-            <div className="text-gray-500 text-xs mt-0.5">Cobrado</div>
-          </button>
-        </div>
-
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
-          <h3 className="font-bold mb-2 text-sm">Tu link de reservas</h3>
-          <button onClick={copiarLink}
-            className="w-full text-black text-sm font-bold py-3 rounded-xl transition-colors"
-            style={{ background: color }}>
-            {copiado ? '✅ Copiado!' : '📋 Copiar link'}
-          </button>
-          <p className="text-gray-600 text-xs mt-1 text-center overflow-hidden whitespace-nowrap text-ellipsis">
-            /b/{negocio?.slug}
-          </p>
-        </div>
-
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 mb-4">
-          <h3 className="font-bold mb-3 text-sm">Gestión</h3>
-          <div className="grid grid-cols-2 gap-2">
+          {/* STATS SCROLL */}
+          <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
-              { icon: '💅', label: 'Servicios', href: '/dashboard/servicios' },
-              { icon: '👥', label: 'Empleados', href: '/dashboard/empleados' },
-              { icon: '👤', label: 'Clientes', href: '/dashboard/clientes' },
-              { icon: '⚙️', label: 'Configuración', href: '/dashboard/configuracion' },
-            ].map((item, i) => (
-              <Link key={i} href={item.href}
-                className="flex items-center gap-2 px-3 py-3 rounded-xl bg-[#0a0a0a] border border-white/10 text-gray-300 text-sm hover:border-white/30 transition-colors">
-                <span>{item.icon}</span>
-                <span className="font-medium">{item.label}</span>
-              </Link>
+              { label: 'Turnos hoy', value: turnosHoy.length, color: '#4f8ef7', bg: 'rgba(79,142,247,0.12)', filtro: 'hoy', icon: '📅' },
+              { label: 'Pendientes', value: turnosPendientes.length, color: '#ffd166', bg: 'rgba(255,209,102,0.12)', filtro: 'pendientes', icon: '⏳' },
+              { label: 'Total', value: turnos.length, color: '#7c5af7', bg: 'rgba(124,90,247,0.12)', filtro: 'todos', icon: '📊' },
+              { label: 'Cobrado', value: '$' + ingresosMes.toLocaleString(), color: '#00e5a0', bg: 'rgba(0,229,160,0.12)', filtro: 'pagados', icon: '💰' },
+            ].map((s, i) => (
+              <div key={i} className="stat-card-scroll" onClick={() => scrollATurnos(s.filtro)}
+                style={{ borderColor: filtro === s.filtro ? s.color + '60' : 'rgba(79,142,247,0.15)' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', marginBottom: '8px' }}>{s.icon}</div>
+                <div style={{ fontSize: '10px', color: '#6b7fa3' }}>{s.label}</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: '22px', fontWeight: 800, color: s.color, lineHeight: 1.1, marginTop: '2px' }}>{s.value}</div>
+              </div>
             ))}
           </div>
-        </div>
 
-        <div ref={turnosRef}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-black">Turnos</h3>
-            <div className="flex gap-1 bg-[#1a1a1a] border border-white/10 rounded-xl p-1">
+          {/* LINK */}
+          <div style={styles.card}>
+            <div style={styles.cardTitle}>
+              Tu link de reservas
+              <span className="badge" style={{ background: 'rgba(0,229,160,0.1)', color: '#00e5a0', border: '1px solid rgba(0,229,160,0.2)' }}>activo</span>
+            </div>
+            <button onClick={copiarLink} style={{ width: '100%', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', color: '#000', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+              {copiado ? '✅ Copiado!' : '📋 Copiar link'}
+            </button>
+            <div style={{ fontSize: '11px', color: '#6b7fa3', textAlign: 'center', marginTop: '8px', fontFamily: "'Syne', sans-serif" }}>
+              /b/{negocio?.slug}
+            </div>
+          </div>
+
+          {/* GESTION */}
+          <div style={styles.card}>
+            <div style={styles.cardTitle}>Gestión</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {[
-                { v: 'hoy', l: 'Hoy' },
-                { v: 'manana', l: 'Mañana' },
-                { v: 'semana', l: 'Semana' },
-                { v: 'todos', l: 'Todos' },
-              ].map(f => (
-                <button key={f.v} onClick={() => setFiltro(f.v)}
-                  className="px-2 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                  style={{
-                    background: filtro === f.v ? color : 'transparent',
-                    color: filtro === f.v ? '#000' : '#9ca3af'
-                  }}>
-                  {f.l}
-                </button>
+                { icon: '💅', label: 'Servicios', href: '/dashboard/servicios' },
+                { icon: '👥', label: 'Empleados', href: '/dashboard/empleados' },
+                { icon: '👤', label: 'Clientes', href: '/dashboard/clientes' },
+                { icon: '⚙️', label: 'Configuración', href: '/dashboard/configuracion' },
+              ].map((item, i) => (
+                <Link key={i} href={item.href} style={{ textDecoration: 'none' }}>
+                  <div className="menu-item">
+                    <span style={{ fontSize: '16px' }}>{item.icon}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#e8edf8' }}>{item.label}</span>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
 
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden">
-            {turnosFiltrados.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-4xl mb-3">📅</div>
-                <p className="text-gray-400 text-sm">No hay turnos para este período</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-white/05">
-                {turnosFiltrados.map((turno) => (
-                  <div key={turno.id} className="px-4 py-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                          style={{ background: color + '20', color }}>
-                          {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm">{turno.clientes?.nombre}</div>
-                          <div className="text-gray-500 text-xs">{turno.servicios?.nombre}</div>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-xs font-bold">
-                          {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
-                        </div>
-                        <div className="text-xs font-bold" style={{ color }}>
-                          {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={'text-xs font-bold px-2 py-1 rounded-full border ' + estadoColor(turno.estado)}>
-                        {turno.estado}
-                      </span>
-                      <button onClick={() => marcarPagado(turno.id, turno.pagado)}
-                        className={'text-xs px-2 py-1 rounded-full font-bold border ' + (turno.pagado ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/05 text-gray-500 border-white/10')}>
-                        {turno.pagado ? '✓ Pagado' : 'Sin pagar'}
-                      </button>
-                      {turno.estado === 'pendiente' && (
-                        <button onClick={() => cambiarEstado(turno.id, 'confirmado')}
-                          className="text-xs px-2 py-1 rounded-lg font-bold bg-green-500/10 text-green-400">✓</button>
-                      )}
-                      {turno.estado !== 'cancelado' && turno.estado !== 'completado' && (
-                        <button onClick={() => cambiarEstado(turno.id, 'cancelado')}
-                          className="text-xs px-2 py-1 rounded-lg font-bold bg-red-500/10 text-red-400">✗</button>
-                      )}
-                      {turno.estado === 'confirmado' && (
-                        <button onClick={() => cambiarEstado(turno.id, 'completado')}
-                          className="text-xs px-2 py-1 rounded-lg font-bold bg-blue-500/10 text-blue-400">★</button>
-                      )}
-                    </div>
-                  </div>
+          {/* TURNOS */}
+          <div ref={turnosRef} style={styles.card}>
+            <div style={styles.cardTitle}>
+              Turnos
+              <div style={{ display: 'flex', gap: '2px', background: '#090d1a', borderRadius: '8px', padding: '3px' }}>
+                {[{ v: 'hoy', l: 'Hoy' }, { v: 'manana', l: 'Mañana' }, { v: 'semana', l: 'Semana' }, { v: 'todos', l: 'Todos' }].map(f => (
+                  <button key={f.v} className={'filter-tab' + (filtro === f.v ? ' active' : '')} onClick={() => setFiltro(f.v)}>{f.l}</button>
                 ))}
               </div>
+            </div>
+
+            {turnosFiltrados.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7fa3', fontSize: '13px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📅</div>
+                No hay turnos para este período
+              </div>
+            ) : (
+              turnosFiltrados.map((turno) => {
+                const pill = estadoPill(turno.estado)
+                return (
+                  <div key={turno.id} className="turno-row">
+                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(79,142,247,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#4f8ef7', flexShrink: 0, fontFamily: "'Syne', sans-serif" }}>
+                      {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600 }}>{turno.clientes?.nombre}</div>
+                      <div style={{ fontSize: '11px', color: '#6b7fa3', marginTop: '1px' }}>{turno.servicios?.nombre}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '13px', color: '#00d4ff', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>
+                        {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#6b7fa3' }}>
+                        {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 7px', borderRadius: '20px', background: pill.bg, color: pill.color, border: '1px solid ' + pill.border }}>
+                        {turno.estado}
+                      </span>
+                      <div style={{ display: 'flex', gap: '3px' }}>
+                        {turno.estado === 'pendiente' && (
+                          <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'confirmado')}
+                            style={{ background: 'rgba(0,229,160,0.12)', color: '#00e5a0' }}>✓</button>
+                        )}
+                        {turno.estado !== 'cancelado' && turno.estado !== 'completado' && (
+                          <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'cancelado')}
+                            style={{ background: 'rgba(255,107,107,0.12)', color: '#ff6b6b' }}>✗</button>
+                        )}
+                        {turno.estado === 'confirmado' && (
+                          <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'completado')}
+                            style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7' }}>★</button>
+                        )}
+                        <button className="action-btn" onClick={() => marcarPagado(turno.id, turno.pagado)}
+                          style={{ background: turno.pagado ? 'rgba(0,229,160,0.12)' : 'rgba(255,255,255,0.05)', color: turno.pagado ? '#00e5a0' : '#6b7fa3' }}>
+                          {turno.pagado ? '$' : '$?'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
             )}
           </div>
+
         </div>
+
+        {/* BOTTOM NAV */}
+        <div style={styles.bottomNav}>
+          <button className={'nav-btn' + (tab === 'inicio' ? ' active' : '')} onClick={() => setTab('inicio')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Inicio
+          </button>
+          <button className={'nav-btn' + (tab === 'turnos' ? ' active' : '')} onClick={() => { setTab('turnos'); setFiltro('todos') }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Turnos
+          </button>
+          <Link href="/b/" style={{ textDecoration: 'none' }}>
+            <button className="nav-btn">
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-8px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+            </button>
+          </Link>
+          <Link href="/dashboard/empleados" style={{ textDecoration: 'none' }}>
+            <button className="nav-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              Equipo
+            </button>
+          </Link>
+          <Link href="/dashboard/configuracion" style={{ textDecoration: 'none' }}>
+            <button className="nav-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              Config
+            </button>
+          </Link>
+        </div>
+
       </div>
-    </div>
+    </>
   )
 }
