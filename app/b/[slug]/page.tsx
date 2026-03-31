@@ -21,6 +21,14 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [confirmado, setConfirmado] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [vistaGaleria, setVistaGaleria] = useState(null)
+  const [turnoConfirmadoId, setTurnoConfirmadoId] = useState(null)
+
+  // Cancelar turno
+  const [modoCancelar, setModoCancelar] = useState(false)
+  const [waCancelar, setWaCancelar] = useState('')
+  const [turnosCancelables, setTurnosCancelables] = useState([])
+  const [buscando, setBuscando] = useState(false)
+  const [cancelado, setCancelado] = useState(false)
 
   useEffect(() => { cargarNegocio() }, [])
 
@@ -36,6 +44,32 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     setLoading(false)
   }
 
+  const buscarTurnos = async () => {
+    if (!waCancelar) return
+    setBuscando(true)
+    const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waCancelar).single()
+    if (cliente) {
+      const { data: turnos } = await supabase
+        .from('turnos')
+        .select('*, servicios(*)')
+        .eq('negocio_id', negocio.id)
+        .eq('cliente_id', cliente.id)
+        .in('estado', ['pendiente', 'confirmado'])
+        .gte('fecha_hora', new Date().toISOString())
+        .order('fecha_hora', { ascending: true })
+      setTurnosCancelables(turnos || [])
+    } else {
+      setTurnosCancelables([])
+    }
+    setBuscando(false)
+  }
+
+  const cancelarTurno = async (id) => {
+    await supabase.from('turnos').update({ estado: 'cancelado' }).eq('id', id)
+    setCancelado(true)
+    setTurnosCancelables(prev => prev.filter(t => t.id !== id))
+  }
+
   const confirmarTurno = async () => {
     setGuardando(true)
     let clienteId = null
@@ -46,7 +80,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: seleccion.whatsapp }]).select().single()
       clienteId = nuevoCliente?.id
     }
-    await supabase.from('turnos').insert([{
+    const { data: turno } = await supabase.from('turnos').insert([{
       negocio_id: negocio.id,
       cliente_id: clienteId,
       empleado_id: seleccion.empleado?.id || null,
@@ -55,7 +89,9 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       forma_pago: seleccion.pago,
       monto: seleccion.servicio?.precio || 0,
       estado: 'pendiente'
-    }])
+    }]).select().single()
+
+    if (turno) setTurnoConfirmadoId(turno.id)
 
     if (negocio.whatsapp_notif) {
       const fecha = new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -93,18 +129,18 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     return negocio.dias_atencion.includes(dia)
   }
 
-  const color = negocio?.color || '#c8f135'
+  const color = negocio?.color || '#4f8ef7'
   const tema = negocio?.tema || 'dark'
   const fuente = FUENTES[negocio?.fuente || 'moderna']
   const borderRadius = negocio?.forma_botones === 'pill' ? '9999px' : negocio?.forma_botones === 'redondeado' ? '12px' : '4px'
   const esPremium = negocio?.plan === 'premium'
   const fechaMin = new Date().toISOString().split('T')[0]
 
-  const bgColor = tema === 'light' ? '#ffffff' : '#0a0a0a'
-  const textColor = tema === 'light' ? '#111111' : '#ffffff'
-  const cardBg = tema === 'light' ? '#f5f5f5' : '#1a1a1a'
-  const cardBorder = tema === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'
-  const mutedColor = tema === 'light' ? '#666666' : '#9ca3af'
+  const bgColor = tema === 'light' ? '#ffffff' : '#090d1a'
+  const textColor = tema === 'light' ? '#111111' : '#e8edf8'
+  const cardBg = tema === 'light' ? '#f5f5f5' : '#0f1628'
+  const cardBorder = tema === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(79,142,247,0.15)'
+  const mutedColor = tema === 'light' ? '#666666' : '#6b7fa3'
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -115,6 +151,68 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   if (!negocio) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: textColor }}>
       Negocio no encontrado
+    </div>
+  )
+
+  // MODO CANCELAR
+  if (modoCancelar) return (
+    <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
+      <div style={{ height: '4px', background: color }} />
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '2rem 1rem' }}>
+        <button onClick={() => { setModoCancelar(false); setCancelado(false); setTurnosCancelables([]); setWaCancelar('') }}
+          style={{ color: mutedColor, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '1.5rem' }}>
+          ← Volver
+        </button>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '0.25rem', color: textColor }}>Cancelar turno</h2>
+        <p style={{ color: mutedColor, fontSize: '0.875rem', marginBottom: '1.5rem' }}>Ingresá tu WhatsApp para buscar tus turnos</p>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+          <input type="tel" placeholder="Ej: 2804001234" value={waCancelar}
+            onChange={e => setWaCancelar(e.target.value)}
+            style={{ flex: 1, background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '0.75rem 1rem', color: textColor, fontSize: '1rem', outline: 'none' }} />
+          <button onClick={buscarTurnos} disabled={buscando}
+            style={{ background: color, color: '#000', border: 'none', borderRadius: '12px', padding: '0.75rem 1.25rem', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', opacity: buscando ? 0.6 : 1 }}>
+            {buscando ? '...' : 'Buscar'}
+          </button>
+        </div>
+
+        {cancelado && (
+          <div style={{ background: 'rgba(0,229,160,0.1)', border: '1px solid rgba(0,229,160,0.25)', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', color: '#00e5a0', fontSize: '0.875rem', textAlign: 'center' }}>
+            ✅ Turno cancelado correctamente
+          </div>
+        )}
+
+        {turnosCancelables.length === 0 && waCancelar && !buscando ? (
+          <div style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '1.5rem', textAlign: 'center', color: mutedColor, fontSize: '0.875rem' }}>
+            No encontramos turnos pendientes con ese WhatsApp
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {turnosCancelables.map(turno => (
+              <div key={turno.id} style={{ background: cardBg, border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontWeight: '600', color: textColor, marginBottom: '2px' }}>{turno.servicios?.nombre}</div>
+                    <div style={{ fontSize: '0.875rem', color: color, fontWeight: '700' }}>
+                      {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: mutedColor }}>
+                      {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: '600', padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,209,102,0.12)', color: '#ffd166', border: '1px solid rgba(255,209,102,0.25)' }}>
+                    {turno.estado}
+                  </span>
+                </div>
+                <button onClick={() => cancelarTurno(turno.id)}
+                  style={{ width: '100%', background: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,0.25)', borderRadius, padding: '0.6rem', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem' }}>
+                  Cancelar este turno
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 
@@ -140,10 +238,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             </div>
           ))}
         </div>
-        <button onClick={() => { setConfirmado(false); setPaso(1); setSeleccion({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' }) }}
-          style={{ color: mutedColor, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer' }}>
-          Sacar otro turno
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button onClick={() => { setConfirmado(false); setPaso(1); setSeleccion({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' }) }}
+            style={{ background: color, color: '#000', border: 'none', borderRadius, padding: '0.75rem', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem' }}>
+            Sacar otro turno
+          </button>
+          <button onClick={() => setModoCancelar(true)}
+            style={{ background: 'transparent', color: mutedColor, border: '1px solid ' + cardBorder, borderRadius, padding: '0.75rem', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem' }}>
+            Cancelar este turno
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -151,7 +255,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
 
-      {/* LIGHTBOX */}
       {vistaGaleria && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           onClick={() => setVistaGaleria(null)}>
@@ -160,10 +263,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       )}
 
-      {/* BARRA COLOR */}
       <div style={{ height: '4px', background: color }} />
 
-      {/* HEADER */}
       <div style={{ borderBottom: '1px solid ' + cardBorder, background: bgColor }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.25rem 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
@@ -174,9 +275,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '900', margin: 0, color: textColor }}>{negocio.nombre}</h1>
-                <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontWeight: '700', background: color + '20', color, flexShrink: 0 }}>
-                  Online
-                </span>
+                <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontWeight: '700', background: color + '20', color, flexShrink: 0 }}>Online</span>
               </div>
               {(negocio.mensaje_bienvenida || negocio.descripcion) && (
                 <p style={{ color: mutedColor, fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
@@ -198,30 +297,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
             {negocio.instagram && (
               <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer"
-                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#E1306C20', color: '#E1306C', textDecoration: 'none' }}>
-                INSTAGRAM
-              </a>
+                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#E1306C20', color: '#E1306C', textDecoration: 'none' }}>INSTAGRAM</a>
             )}
             {negocio.facebook && (
               <a href={'https://facebook.com/' + negocio.facebook} target="_blank" rel="noreferrer"
-                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#1877F220', color: '#1877F2', textDecoration: 'none' }}>
-                FACEBOOK
-              </a>
+                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#1877F220', color: '#1877F2', textDecoration: 'none' }}>FACEBOOK</a>
             )}
             {negocio.tiktok && (
               <a href={'https://tiktok.com/' + negocio.tiktok} target="_blank" rel="noreferrer"
-                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: tema === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', color: textColor, textDecoration: 'none' }}>
-                TIKTOK
-              </a>
+                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: tema === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', color: textColor, textDecoration: 'none' }}>TIKTOK</a>
             )}
             {negocio.google_maps && (
               <a href={negocio.google_maps} target="_blank" rel="noreferrer"
-                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#EA433520', color: '#EA4335', textDecoration: 'none' }}>
-                MAPS
-              </a>
+                style={{ fontSize: '0.7rem', fontWeight: '700', padding: '0.25rem 0.75rem', borderRadius: '9999px', background: '#EA433520', color: '#EA4335', textDecoration: 'none' }}>MAPS</a>
             )}
           </div>
 
@@ -236,10 +327,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       </div>
 
-      {/* CONTENIDO CENTRADO */}
       <div style={{ maxWidth: '480px', margin: '0 auto', padding: '2rem 1rem' }}>
 
-        {/* PASOS */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
           {[1,2,3,4].map(p => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -265,6 +354,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 </button>
               ))}
             </div>
+            <button onClick={() => setModoCancelar(true)}
+              style={{ width: '100%', marginTop: '1.5rem', background: 'transparent', color: mutedColor, border: '1px solid ' + cardBorder, borderRadius, padding: '0.75rem', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem' }}>
+              ¿Querés cancelar un turno?
+            </button>
           </div>
         )}
 

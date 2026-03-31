@@ -80,7 +80,6 @@ export default function Dashboard() {
   const turnosPendientes = turnos.filter(t => t.estado === 'pendiente')
   const ingresosMes = turnos.filter(t => t.pagado).reduce((acc, t) => acc + Number(t.monto), 0)
 
-  // Estadísticas por día de la semana
   const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
   const turnosPorDia = dias.map((d, i) => ({
     dia: d,
@@ -88,26 +87,22 @@ export default function Dashboard() {
   }))
   const maxDia = Math.max(...turnosPorDia.map(d => d.count), 1)
 
-  // Servicios más pedidos
   const serviciosCount: Record<string, number> = {}
   turnos.forEach(t => {
     if (t.servicios?.nombre) {
       serviciosCount[t.servicios.nombre] = (serviciosCount[t.servicios.nombre] || 0) + 1
     }
   })
-  const topServicios = Object.entries(serviciosCount)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
+  const topServicios = Object.entries(serviciosCount).sort((a, b) => b[1] - a[1]).slice(0, 4)
   const maxServicio = Math.max(...topServicios.map(s => s[1]), 1)
-
-  const estadoPill = (estado) => {
-    if (estado === 'confirmado') return { bg: 'rgba(0,229,160,0.12)', color: '#00e5a0', border: 'rgba(0,229,160,0.25)' }
-    if (estado === 'cancelado') return { bg: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: 'rgba(255,107,107,0.25)' }
-    if (estado === 'completado') return { bg: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: 'rgba(79,142,247,0.25)' }
-    return { bg: 'rgba(255,209,102,0.12)', color: '#ffd166', border: 'rgba(255,209,102,0.25)' }
-  }
-
   const svcColors = ['#4f8ef7','#7c5af7','#00d4ff','#00e5a0']
+
+  const estadoConfig = (estado) => {
+    if (estado === 'confirmado') return { bg: 'rgba(0,229,160,0.12)', color: '#00e5a0', border: 'rgba(0,229,160,0.25)', label: 'Confirmado' }
+    if (estado === 'cancelado') return { bg: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: 'rgba(255,107,107,0.25)', label: 'Cancelado' }
+    if (estado === 'completado') return { bg: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: 'rgba(79,142,247,0.25)', label: 'Completado' }
+    return { bg: 'rgba(255,209,102,0.12)', color: '#ffd166', border: 'rgba(255,209,102,0.25)', label: 'Pendiente' }
+  }
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#090d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -127,11 +122,11 @@ export default function Dashboard() {
         .nav-btn svg { width:20px; height:20px; }
         .stat-card-scroll { min-width:130px; background:#0f1628; border:1px solid rgba(79,142,247,0.15); border-radius:12px; padding:13px; flex-shrink:0; cursor:pointer; transition:border-color 0.2s; }
         .stat-card-scroll:hover { border-color:rgba(79,142,247,0.4); }
-        .turno-row { padding:10px 0; border-bottom:1px solid rgba(79,142,247,0.1); display:flex; align-items:center; gap:10px; }
-        .turno-row:last-child { border-bottom:none; }
+        .turno-row { padding:12px; margin-bottom:8px; background:#0a0f1e; border:1px solid rgba(79,142,247,0.1); border-radius:10px; }
         .filter-tab { padding:5px 10px; border-radius:8px; font-size:11px; font-weight:500; color:#6b7fa3; cursor:pointer; border:none; background:none; font-family:'DM Sans',sans-serif; }
         .filter-tab.active { background:rgba(79,142,247,0.15); color:#4f8ef7; }
-        .action-btn { padding:3px 8px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; }
+        .action-btn { padding:5px 10px; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; transition:opacity 0.2s; }
+        .action-btn:hover { opacity:0.8; }
         .menu-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; background:#0a0f1e; border:1px solid rgba(79,142,247,0.1); cursor:pointer; transition:border-color 0.2s; text-decoration:none; }
         .menu-item:hover { border-color:rgba(79,142,247,0.3); }
         .badge { font-size:10px; padding:2px 7px; border-radius:20px; }
@@ -165,7 +160,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* STATS SCROLL */}
+          {/* STATS */}
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
               { label: 'Turnos hoy', value: turnosHoy.length, color: '#4f8ef7', bg: 'rgba(79,142,247,0.12)', filtro: 'hoy', icon: '📅' },
@@ -216,16 +211,16 @@ export default function Dashboard() {
           <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Turnos por día
-              <span className="badge" style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)' }}>Esta semana</span>
+              <span className="badge" style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)' }}>Histórico</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '70px' }}>
               {turnosPorDia.map((d, i) => {
                 const colors = ['#7c5af7','#4f8ef7','#7c5af7','#00d4ff','#00e5a0','#4f8ef7','#7c5af7']
-                const pct = maxDia > 0 ? (d.count / maxDia) * 100 : 0
+                const h = maxDia > 0 ? Math.max((d.count / maxDia) * 55, d.count > 0 ? 8 : 3) : 3
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
                     <div style={{ fontSize: '9px', color: '#6b7fa3', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{d.count > 0 ? d.count : ''}</div>
-                    <div style={{ width: '100%', height: Math.max(pct * 0.55, d.count > 0 ? 8 : 3) + 'px', borderRadius: '3px 3px 0 0', background: d.count > 0 ? colors[i] : 'rgba(255,255,255,0.05)', opacity: d.count > 0 ? 1 : 0.5 }} />
+                    <div style={{ width: '100%', height: h + 'px', borderRadius: '3px 3px 0 0', background: d.count > 0 ? colors[i] : 'rgba(255,255,255,0.05)' }} />
                     <div style={{ fontSize: '9px', color: '#6b7fa3' }}>{d.dia}</div>
                   </div>
                 )
@@ -240,17 +235,15 @@ export default function Dashboard() {
                 Servicios más pedidos
                 <span className="badge" style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)' }}>Top {topServicios.length}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {topServicios.map(([nombre, count], i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ fontSize: '11px', color: '#6b7fa3', minWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</div>
-                    <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: '4px', width: Math.round((count / maxServicio) * 100) + '%', background: svcColors[i] }} />
-                    </div>
-                    <div style={{ fontSize: '11px', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: svcColors[i], minWidth: '20px', textAlign: 'right' }}>{count}</div>
+              {topServicios.map(([nombre, count], i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '11px', color: '#6b7fa3', minWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</div>
+                  <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: '4px', width: Math.round((count / maxServicio) * 100) + '%', background: svcColors[i] }} />
                   </div>
-                ))}
-              </div>
+                  <div style={{ fontSize: '11px', fontFamily: "'Syne', sans-serif", fontWeight: 700, color: svcColors[i], minWidth: '20px', textAlign: 'right' }}>{count}</div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -272,45 +265,60 @@ export default function Dashboard() {
               </div>
             ) : (
               turnosFiltrados.map((turno) => {
-                const pill = estadoPill(turno.estado)
+                const est = estadoConfig(turno.estado)
                 return (
                   <div key={turno.id} className="turno-row">
-                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(79,142,247,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#4f8ef7', flexShrink: 0, fontFamily: "'Syne', sans-serif" }}>
-                      {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600 }}>{turno.clientes?.nombre}</div>
-                      <div style={{ fontSize: '11px', color: '#6b7fa3', marginTop: '1px' }}>{turno.servicios?.nombre}</div>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: '13px', color: '#00d4ff', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>
-                        {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                    {/* FILA 1: avatar + nombre + hora */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(79,142,247,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#4f8ef7', flexShrink: 0, fontFamily: "'Syne', sans-serif" }}>
+                        {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
                       </div>
-                      <div style={{ fontSize: '10px', color: '#6b7fa3' }}>
-                        {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600 }}>{turno.clientes?.nombre}</div>
+                        <div style={{ fontSize: '11px', color: '#6b7fa3', marginTop: '1px' }}>{turno.servicios?.nombre}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: '14px', color: '#00d4ff', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>
+                          {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#6b7fa3' }}>
+                          {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                        </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 7px', borderRadius: '20px', background: pill.bg, color: pill.color, border: '1px solid ' + pill.border }}>
-                        {turno.estado}
+
+                    {/* FILA 2: estado + acciones */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      {/* ESTADO */}
+                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '20px', background: est.bg, color: est.color, border: '1px solid ' + est.border }}>
+                        {est.label}
                       </span>
-                      <div style={{ display: 'flex', gap: '3px' }}>
+
+                      {/* PAGO */}
+                      <button className="action-btn" onClick={() => marcarPagado(turno.id, turno.pagado)}
+                        style={{ background: turno.pagado ? 'rgba(0,229,160,0.12)' : 'rgba(255,107,107,0.12)', color: turno.pagado ? '#00e5a0' : '#ff6b6b', border: '1px solid ' + (turno.pagado ? 'rgba(0,229,160,0.25)' : 'rgba(255,107,107,0.25)') }}>
+                        {turno.pagado ? '✓ Pagado' : '✗ Sin pagar'}
+                      </button>
+
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
                         {turno.estado === 'pendiente' && (
                           <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'confirmado')}
-                            style={{ background: 'rgba(0,229,160,0.12)', color: '#00e5a0' }}>✓</button>
-                        )}
-                        {turno.estado !== 'cancelado' && turno.estado !== 'completado' && (
-                          <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'cancelado')}
-                            style={{ background: 'rgba(255,107,107,0.12)', color: '#ff6b6b' }}>✗</button>
+                            style={{ background: 'rgba(0,229,160,0.12)', color: '#00e5a0', border: '1px solid rgba(0,229,160,0.25)' }}>
+                            Confirmar
+                          </button>
                         )}
                         {turno.estado === 'confirmado' && (
                           <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'completado')}
-                            style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7' }}>★</button>
+                            style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.25)' }}>
+                            Completar
+                          </button>
                         )}
-                        <button className="action-btn" onClick={() => marcarPagado(turno.id, turno.pagado)}
-                          style={{ background: turno.pagado ? 'rgba(0,229,160,0.12)' : 'rgba(255,255,255,0.05)', color: turno.pagado ? '#00e5a0' : '#6b7fa3' }}>
-                          {turno.pagado ? '$' : '$?'}
-                        </button>
+                        {turno.estado !== 'cancelado' && turno.estado !== 'completado' && (
+                          <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'cancelado')}
+                            style={{ background: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,0.25)' }}>
+                            Cancelar
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
