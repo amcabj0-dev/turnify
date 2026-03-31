@@ -12,7 +12,6 @@ const DIAS_NOMBRES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
 
 const PASO_LABELS = ['Servicio', 'Profesional', 'Horario', 'Datos']
 
-const ICONOS_SERVICIOS = ['✂️','💆','🧴','💅','🏋️','🧘','👁️','🦷','🩺','💇']
 
 export default function Reserva({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
@@ -326,7 +325,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
   // ── PÁGINA PRINCIPAL ──────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
+    <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .paso-content { animation: fadeIn 0.25s ease both; }
@@ -347,10 +346,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       )}
 
       {/* Barra de color top */}
-      <div style={{ height: '3px', background: color }} />
+      <div style={{ height: '3px', background: color, width: '100%' }} />
 
       {/* Header del negocio */}
-      <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, boxShadow: tema === 'light' ? '0 1px 8px rgba(0,0,0,0.04)' : 'none' }}>
+      <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, boxShadow: tema === 'light' ? '0 1px 8px rgba(0,0,0,0.04)' : 'none', width: '100%' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.5rem 1rem 1.25rem' }}>
 
           {/* Logo + nombre */}
@@ -430,7 +429,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       </div>
 
       {/* Contenido principal */}
-      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.75rem 1rem 3rem' }}>
+      <div style={{ maxWidth: '480px', width: '100%', margin: '0 auto', padding: '1.75rem 1rem 3rem' }}>
 
         {/* Stepper mejorado */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', gap: 0 }}>
@@ -474,8 +473,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 <button key={s.id} className="btn-servicio" onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
                   style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', flexShrink: 0 }}>
-                      {ICONOS_SERVICIOS[i % ICONOS_SERVICIOS.length]}
+                    <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.8rem', flexShrink: 0, letterSpacing: '-0.02em' }}>
+                      {s.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}
                     </div>
                     <div>
                       <div style={{ fontWeight: '700', color: textColor, fontSize: '0.95rem', marginBottom: '2px' }}>{s.nombre}</div>
@@ -692,7 +691,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       </div>
 
       {/* Footer */}
-      <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid ' + borderColor }}>
+      <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid ' + borderColor, width: '100%' }}>
         <p style={{ color: textSub, fontSize: '0.75rem', margin: 0 }}>
           Reservas gestionadas por <span style={{ color, fontWeight: '700' }}>Turnify</span>
         </p>
