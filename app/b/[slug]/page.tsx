@@ -12,6 +12,42 @@ const DIAS_NOMBRES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
 
 const PASO_LABELS = ['Servicio', 'Profesional', 'Horario', 'Datos']
 
+const PAISES = [
+  { codigo: '54',  bandera: '🇦🇷', nombre: 'Argentina' },
+  { codigo: '591', bandera: '🇧🇴', nombre: 'Bolivia' },
+  { codigo: '56',  bandera: '🇨🇱', nombre: 'Chile' },
+  { codigo: '57',  bandera: '🇨🇴', nombre: 'Colombia' },
+  { codigo: '506', bandera: '🇨🇷', nombre: 'Costa Rica' },
+  { codigo: '53',  bandera: '🇨🇺', nombre: 'Cuba' },
+  { codigo: '593', bandera: '🇪🇨', nombre: 'Ecuador' },
+  { codigo: '503', bandera: '🇸🇻', nombre: 'El Salvador' },
+  { codigo: '502', bandera: '🇬🇹', nombre: 'Guatemala' },
+  { codigo: '504', bandera: '🇭🇳', nombre: 'Honduras' },
+  { codigo: '52',  bandera: '🇲🇽', nombre: 'México' },
+  { codigo: '505', bandera: '🇳🇮', nombre: 'Nicaragua' },
+  { codigo: '507', bandera: '🇵🇦', nombre: 'Panamá' },
+  { codigo: '595', bandera: '🇵🇾', nombre: 'Paraguay' },
+  { codigo: '51',  bandera: '🇵🇪', nombre: 'Perú' },
+  { codigo: '1787',bandera: '🇵🇷', nombre: 'Puerto Rico' },
+  { codigo: '1809',bandera: '🇩🇴', nombre: 'Rep. Dominicana' },
+  { codigo: '598', bandera: '🇺🇾', nombre: 'Uruguay' },
+  { codigo: '58',  bandera: '🇻🇪', nombre: 'Venezuela' },
+]
+
+// Limpia el número y genera variantes para búsqueda flexible
+const normalizarWA = (numero: string) => numero.replace(/\D/g, '')
+
+const variantesWA = (prefijo: string, numero: string) => {
+  const n = normalizarWA(numero)
+  const conPrefijo = prefijo + n
+  const set = new Set([
+    n,
+    conPrefijo,
+    prefijo + '9' + n,  // Argentina tiene 9 móvil
+    n.replace(/^0+/, ''),
+  ])
+  return Array.from(set).filter(v => v.length > 5)
+}
 
 export default function Reserva({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
@@ -20,6 +56,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [empleados, setEmpleados] = useState([])
   const [paso, setPaso] = useState(1)
   const [seleccion, setSeleccion] = useState({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' })
+  const [prefijoPais, setPrefijoPais] = useState(PAISES[0]) // Argentina por defecto
+  const [prefijoCancelar, setPrefijoCancelar] = useState(PAISES[0])
   const [loading, setLoading] = useState(true)
   const [confirmado, setConfirmado] = useState(false)
   const [guardando, setGuardando] = useState(false)
@@ -56,13 +94,21 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const buscarTurnos = async () => {
     if (!waCancelar) return
     setBuscando(true)
-    const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waCancelar).single()
-    if (cliente) {
+    const variantes = variantesWA(prefijoCancelar.codigo, waCancelar)
+
+    // Buscar cliente con cualquier variante del número
+    let clienteId = null
+    for (const v of variantes) {
+      const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', v).single()
+      if (cliente) { clienteId = cliente.id; break }
+    }
+
+    if (clienteId) {
       const { data: turnos } = await supabase
         .from('turnos')
         .select('*, servicios(*)')
         .eq('negocio_id', negocio.id)
-        .eq('cliente_id', cliente.id)
+        .eq('cliente_id', clienteId)
         .in('estado', ['pendiente', 'confirmado'])
         .gte('fecha_hora', new Date().toISOString())
         .order('fecha_hora', { ascending: true })
@@ -81,12 +127,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
   const confirmarTurno = async () => {
     setGuardando(true)
+    const waCompleto = prefijoPais.codigo + normalizarWA(seleccion.whatsapp)
     let clienteId = null
-    const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', seleccion.whatsapp).single()
-    if (clienteExiste) {
-      clienteId = clienteExiste.id
-    } else {
-      const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: seleccion.whatsapp }]).select().single()
+    // Buscar con variantes también al confirmar
+    const variantes = variantesWA(prefijoPais.codigo, seleccion.whatsapp)
+    for (const v of variantes) {
+      const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', v).single()
+      if (clienteExiste) { clienteId = clienteExiste.id; break }
+    }
+    if (!clienteId) {
+      const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: waCompleto }]).select().single()
       clienteId = nuevoCliente?.id
     }
     const { data: turno } = await supabase.from('turnos').insert([{
@@ -224,7 +274,15 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
-          <input type="tel" placeholder="Ej: 2804001234" value={waCancelar}
+          <select
+            value={prefijoCancelar.codigo}
+            onChange={e => setPrefijoCancelar(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
+            style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '12px', padding: '0 0.75rem', color: textColor, fontSize: '0.875rem', fontFamily: fuente, outline: 'none', cursor: 'pointer', flexShrink: 0 }}>
+            {PAISES.map(p => (
+              <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>
+            ))}
+          </select>
+          <input type="tel" placeholder="Número sin prefijo" value={waCancelar}
             onChange={e => setWaCancelar(e.target.value)}
             style={{ ...estiloInput, flex: 1 }} />
           <button onClick={buscarTurnos} disabled={buscando}
@@ -620,11 +678,18 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WhatsApp</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: textSub, fontSize: '0.9rem', fontWeight: '600' }}>🇦🇷 +54</span>
-                  <input type="tel" placeholder="2804001234" value={seleccion.whatsapp}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <select
+                    value={prefijoPais.codigo}
+                    onChange={e => setPrefijoPais(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
+                    style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '12px', padding: '0 0.75rem', color: textColor, fontSize: '0.875rem', fontFamily: fuente, outline: 'none', cursor: 'pointer', flexShrink: 0 }}>
+                    {PAISES.map(p => (
+                      <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>
+                    ))}
+                  </select>
+                  <input type="tel" placeholder="Número sin prefijo" value={seleccion.whatsapp}
                     onChange={e => setSeleccion({...seleccion, whatsapp: e.target.value})}
-                    style={{ ...estiloInput, paddingLeft: '5rem' }} />
+                    style={{ ...estiloInput }} />
                 </div>
               </div>
 
