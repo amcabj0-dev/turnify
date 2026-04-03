@@ -4,13 +4,13 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 export default function Dashboard() {
-  const [negocio, setNegocio] = useState(null)
-  const [turnos, setTurnos] = useState([])
+  const [negocio, setNegocio] = useState<any>(null)
+  const [turnos, setTurnos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('hoy')
   const [copiado, setCopiado] = useState(false)
   const [tab, setTab] = useState('inicio')
-  const turnosRef = useRef(null)
+  const turnosRef = useRef<any>(null)
 
   useEffect(() => {
     const n = JSON.parse(localStorage.getItem('negocio') || '{}')
@@ -18,24 +18,27 @@ export default function Dashboard() {
     else window.location.href = '/login'
   }, [])
 
-  const cargarTurnos = async (id) => {
-    const { data } = await supabase
+  const cargarTurnos = async (id: string) => {
+    const { data, error } = await supabase
       .from('turnos')
-      .select('*, clientes(*), servicios(*), empleados(*)')
+      .select('*, clientes(id, nombre, whatsapp), servicios(id, nombre, precio, duracion_minutos), empleados(id, nombre)')
       .eq('negocio_id', id)
       .order('fecha_hora', { ascending: true })
+    console.log('turnos data:', data, 'error:', error)
     setTurnos(data || [])
     setLoading(false)
   }
 
-  const cambiarEstado = async (id, estado) => {
+  const cambiarEstado = async (id: string, estado: string) => {
     await supabase.from('turnos').update({ estado }).eq('id', id)
-    cargarTurnos(JSON.parse(localStorage.getItem('negocio') || '{}').id)
+    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
+    cargarTurnos(n.id)
   }
 
-  const marcarPagado = async (id, pagado) => {
+  const marcarPagado = async (id: string, pagado: boolean) => {
     await supabase.from('turnos').update({ pagado: !pagado }).eq('id', id)
-    cargarTurnos(JSON.parse(localStorage.getItem('negocio') || '{}').id)
+    const n = JSON.parse(localStorage.getItem('negocio') || '{}')
+    cargarTurnos(n.id)
   }
 
   const cerrarSesion = () => { localStorage.clear(); window.location.href = '/login' }
@@ -54,7 +57,7 @@ export default function Dashboard() {
     setTimeout(() => setCopiado(false), 2000)
   }
 
-  const scrollATurnos = (nuevoFiltro) => {
+  const scrollATurnos = (nuevoFiltro: string) => {
     setFiltro(nuevoFiltro)
     setTab('turnos')
     setTimeout(() => turnosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
@@ -97,7 +100,7 @@ export default function Dashboard() {
   const maxServicio = Math.max(...topServicios.map(s => s[1]), 1)
   const svcColors = ['#4f8ef7','#7c5af7','#00d4ff','#00e5a0']
 
-  const estadoConfig = (estado) => {
+  const estadoConfig = (estado: string) => {
     if (estado === 'confirmado') return { bg: 'rgba(0,229,160,0.12)', color: '#00e5a0', border: 'rgba(0,229,160,0.25)', label: 'Confirmado' }
     if (estado === 'cancelado') return { bg: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: 'rgba(255,107,107,0.25)', label: 'Cancelado' }
     if (estado === 'completado') return { bg: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: 'rgba(79,142,247,0.25)', label: 'Completado' }
@@ -135,7 +138,6 @@ export default function Dashboard() {
 
       <div style={{ minHeight: '100vh', background: '#090d1a', color: '#e8edf8', fontFamily: "'DM Sans', sans-serif", paddingBottom: '80px' }}>
 
-        {/* NAV */}
         <div style={{ background: '#0f1628', borderBottom: '1px solid rgba(79,142,247,0.15)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
           <div style={{ fontSize: '20px', fontWeight: 800, fontFamily: "'Syne', sans-serif", background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Turnify</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -151,7 +153,6 @@ export default function Dashboard() {
 
         <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-          {/* GREETING */}
           <div>
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '17px', fontWeight: 800 }}>Buen día 👋</h2>
             <p style={{ color: '#6b7fa3', fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -160,7 +161,6 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* STATS */}
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
               { label: 'Turnos hoy', value: turnosHoy.length, color: '#4f8ef7', bg: 'rgba(79,142,247,0.12)', filtro: 'hoy', icon: '📅' },
@@ -177,7 +177,6 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* LINK */}
           <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Tu link de reservas
@@ -189,7 +188,6 @@ export default function Dashboard() {
             <div style={{ fontSize: '11px', color: '#6b7fa3', textAlign: 'center', marginTop: '8px' }}>/b/{negocio?.slug}</div>
           </div>
 
-          {/* GESTION */}
           <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px' }}>Gestión</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -207,7 +205,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* GRAFICO SEMANAL */}
           <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Turnos por día
@@ -228,7 +225,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* TOP SERVICIOS */}
           {topServicios.length > 0 && (
             <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -247,7 +243,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* TURNOS */}
           <div ref={turnosRef} style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Turnos
@@ -268,14 +263,13 @@ export default function Dashboard() {
                 const est = estadoConfig(turno.estado)
                 return (
                   <div key={turno.id} className="turno-row">
-                    {/* FILA 1: avatar + nombre + hora */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                       <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(79,142,247,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#4f8ef7', flexShrink: 0, fontFamily: "'Syne', sans-serif" }}>
                         {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600 }}>{turno.clientes?.nombre}</div>
-                        <div style={{ fontSize: '11px', color: '#6b7fa3', marginTop: '1px' }}>{turno.servicios?.nombre}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600 }}>{turno.clientes?.nombre || 'Sin nombre'}</div>
+                        <div style={{ fontSize: '11px', color: '#6b7fa3', marginTop: '1px' }}>{turno.servicios?.nombre || 'Sin servicio'}</div>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: '14px', color: '#00d4ff', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>
@@ -287,19 +281,14 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* FILA 2: estado + acciones */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      {/* ESTADO */}
                       <span style={{ fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '20px', background: est.bg, color: est.color, border: '1px solid ' + est.border }}>
                         {est.label}
                       </span>
-
-                      {/* PAGO */}
                       <button className="action-btn" onClick={() => marcarPagado(turno.id, turno.pagado)}
                         style={{ background: turno.pagado ? 'rgba(0,229,160,0.12)' : 'rgba(255,107,107,0.12)', color: turno.pagado ? '#00e5a0' : '#ff6b6b', border: '1px solid ' + (turno.pagado ? 'rgba(0,229,160,0.25)' : 'rgba(255,107,107,0.25)') }}>
                         {turno.pagado ? '✓ Pagado' : '✗ Sin pagar'}
                       </button>
-
                       <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
                         {turno.estado === 'pendiente' && (
                           <button className="action-btn" onClick={() => cambiarEstado(turno.id, 'confirmado')}
@@ -329,7 +318,6 @@ export default function Dashboard() {
 
         </div>
 
-        {/* BOTTOM NAV */}
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0f1628', borderTop: '1px solid rgba(79,142,247,0.15)', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0 14px', zIndex: 100 }}>
           <button className={'nav-btn' + (tab === 'inicio' ? ' active' : '')} onClick={() => setTab('inicio')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
