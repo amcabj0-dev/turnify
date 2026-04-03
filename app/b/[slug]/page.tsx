@@ -78,10 +78,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const buscarTurnos = async () => {
     if (!waCancelar) return
     setBuscando(true)
-    // Buscar por número exacto con prefijo
-    const waExacto = prefijoCancelar.codigo + normalizarWA(waCancelar)
-    const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waExacto).single()
-
+    const waSinPrefijo = normalizarWA(waCancelar)
+    const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waSinPrefijo).single()
     if (cliente) {
       const { data: turnos } = await supabase
         .from('turnos')
@@ -106,15 +104,14 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
   const confirmarTurno = async () => {
     setGuardando(true)
-    const waCompleto = prefijoPais.codigo + normalizarWA(seleccion.whatsapp)
+    const waSinPrefijo = normalizarWA(seleccion.whatsapp)
     let clienteId = null
 
-    // Buscar por número exacto solamente
-    const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waCompleto).single()
+    const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waSinPrefijo).single()
     if (clienteExiste) {
       clienteId = clienteExiste.id
     } else {
-      const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: waCompleto }]).select().single()
+      const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: waSinPrefijo }]).select().single()
       clienteId = nuevoCliente?.id
     }
 
@@ -138,7 +135,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         'Fecha: ' + fecha + '%0A' +
         'Hora: ' + seleccion.hora + '%0A' +
         'Pago: ' + seleccion.pago + '%0A' +
-        'WhatsApp: ' + waCompleto
+        'WhatsApp: ' + prefijoPais.codigo + waSinPrefijo
       window.open('https://wa.me/549' + negocio.whatsapp_notif + '?text=' + mensaje, '_blank')
     }
 
@@ -189,46 +186,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   }
 
   const estiloBotonPrimario: React.CSSProperties = {
-    background: color,
-    color: '#fff',
-    border: 'none',
-    borderRadius,
-    padding: '0.875rem 1.5rem',
-    fontWeight: '700',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    width: '100%',
-    fontFamily: fuente,
-    letterSpacing: '-0.01em',
+    background: color, color: '#fff', border: 'none', borderRadius,
+    padding: '0.875rem 1.5rem', fontWeight: '700', cursor: 'pointer',
+    fontSize: '1rem', width: '100%', fontFamily: fuente, letterSpacing: '-0.01em',
   }
 
   const estiloInput: React.CSSProperties = {
-    width: '100%',
-    background: bgCard,
-    border: '1.5px solid ' + borderColor,
-    borderRadius: '12px',
-    padding: '0.875rem 1rem',
-    color: textColor,
-    fontSize: '1rem',
-    outline: 'none',
-    colorScheme: tema === 'dark' ? 'dark' : 'light',
-    boxSizing: 'border-box',
-    fontFamily: fuente,
-    transition: 'border-color 0.2s',
+    width: '100%', background: bgCard, border: '1.5px solid ' + borderColor,
+    borderRadius: '12px', padding: '0.875rem 1rem', color: textColor,
+    fontSize: '1rem', outline: 'none', colorScheme: tema === 'dark' ? 'dark' : 'light',
+    boxSizing: 'border-box', fontFamily: fuente, transition: 'border-color 0.2s',
   }
 
   const estiloSelect: React.CSSProperties = {
-    background: bgCard,
-    border: '1.5px solid ' + borderColor,
-    borderRadius: '12px',
-    padding: '0 0.75rem',
-    color: textColor,
-    fontSize: '0.875rem',
-    fontFamily: fuente,
-    outline: 'none',
-    cursor: 'pointer',
-    flexShrink: 0,
-    height: '50px',
+    background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '12px',
+    padding: '0 0.75rem', color: textColor, fontSize: '0.875rem', fontFamily: fuente,
+    outline: 'none', cursor: 'pointer', flexShrink: 0, height: '50px',
   }
 
   if (loading) return (
@@ -247,7 +220,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ── MODO CANCELAR ─────────────────────────────────────────────
   if (modoCancelar) return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
       <div style={{ height: '3px', background: color }} />
@@ -256,12 +228,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           style={{ display: 'flex', alignItems: 'center', gap: '6px', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '2rem', padding: 0, fontFamily: fuente }}>
           ← Volver al inicio
         </button>
-
         <div style={{ marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>Cancelar turno</h2>
           <p style={{ color: textSub, fontSize: '0.9rem', margin: 0 }}>Ingresá tu número de WhatsApp para ver tus turnos activos</p>
         </div>
-
         <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
           <select value={prefijoCancelar.codigo}
             onChange={e => setPrefijoCancelar(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
@@ -278,13 +248,11 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             {buscando ? '...' : 'Buscar'}
           </button>
         </div>
-
         {cancelado && (
           <div style={{ background: tema === 'light' ? '#f0faf5' : 'rgba(52,199,120,0.1)', border: '1.5px solid ' + (tema === 'light' ? '#b8e8cc' : 'rgba(52,199,120,0.25)'), borderRadius: '14px', padding: '1rem', marginBottom: '1rem', color: tema === 'light' ? '#1a7a45' : '#34c778', fontSize: '0.875rem', textAlign: 'center', fontWeight: '600' }}>
             ✓ Turno cancelado correctamente
           </div>
         )}
-
         {waCancelar && !buscando && turnosCancelables.length === 0 ? (
           <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '16px', padding: '2rem', textAlign: 'center', color: textSub, fontSize: '0.875rem', boxShadow: shadowCard }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔍</div>
@@ -320,7 +288,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ── CONFIRMADO ────────────────────────────────────────────────
   if (confirmado) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', fontFamily: fuente }}>
       <style>{`
@@ -329,9 +296,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       `}</style>
       <div style={{ textAlign: 'center', maxWidth: '440px', width: '100%' }}>
         <div style={{ fontSize: '4rem', marginBottom: '1.25rem', display: 'inline-block', animation: 'popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both' }}>🎉</div>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: textColor, marginBottom: '0.5rem', letterSpacing: '-0.03em', animation: 'slideUp 0.4s 0.15s both' }}>
-          ¡Todo listo!
-        </h2>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: textColor, marginBottom: '0.5rem', letterSpacing: '-0.03em', animation: 'slideUp 0.4s 0.15s both' }}>¡Todo listo!</h2>
         <p style={{ color: textSub, marginBottom: '1.75rem', fontSize: '0.95rem', animation: 'slideUp 0.4s 0.25s both' }}>
           {negocio.mensaje_confirmacion || 'Tu turno quedó reservado. ¡Te esperamos!'}
         </p>
@@ -365,7 +330,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ── PÁGINA PRINCIPAL ──────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <style>{`
@@ -392,8 +356,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.5rem 1rem 1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
             {negocio.logo_url ? (
-              <img src={negocio.logo_url} alt="Logo"
-                style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + borderColor, boxShadow: '0 2px 10px ' + colorAlpha(0.2) }} />
+              <img src={negocio.logo_url} alt="Logo" style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + borderColor, boxShadow: '0 2px 10px ' + colorAlpha(0.2) }} />
             ) : (
               <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: colorAlpha(0.12), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
                 {negocio.nombre?.[0]?.toUpperCase()}
@@ -414,40 +377,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: negocio.instagram || negocio.facebook || negocio.tiktok || negocio.google_maps ? '0.875rem' : '0' }}>
             {negocio.direccion && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>
-                📍 {negocio.direccion}
-              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>📍 {negocio.direccion}</span>
             )}
             {negocio.horario_apertura && negocio.horario_cierre && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>
-                🕐 {negocio.horario_apertura.slice(0,5)} – {negocio.horario_cierre.slice(0,5)}
-              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>🕐 {negocio.horario_apertura.slice(0,5)} – {negocio.horario_cierre.slice(0,5)}</span>
             )}
             {negocio.dias_atencion && negocio.dias_atencion.length > 0 && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>
-                📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}
-              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}</span>
             )}
           </div>
 
           {(negocio.instagram || negocio.facebook || negocio.tiktok || negocio.google_maps) && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {negocio.instagram && (
-                <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer"
-                  style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#fff0f5' : 'rgba(225,48,108,0.1)', color: '#E1306C', textDecoration: 'none', letterSpacing: '0.04em' }}>Instagram</a>
-              )}
-              {negocio.facebook && (
-                <a href={'https://facebook.com/' + negocio.facebook} target="_blank" rel="noreferrer"
-                  style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#f0f4ff' : 'rgba(24,119,242,0.1)', color: '#1877F2', textDecoration: 'none', letterSpacing: '0.04em' }}>Facebook</a>
-              )}
-              {negocio.tiktok && (
-                <a href={'https://tiktok.com/' + negocio.tiktok} target="_blank" rel="noreferrer"
-                  style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: bgSubtle, color: textSub, textDecoration: 'none', letterSpacing: '0.04em' }}>TikTok</a>
-              )}
-              {negocio.google_maps && (
-                <a href={negocio.google_maps} target="_blank" rel="noreferrer"
-                  style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#fff3f3' : 'rgba(234,67,53,0.1)', color: '#EA4335', textDecoration: 'none', letterSpacing: '0.04em' }}>Ver en Maps</a>
-              )}
+              {negocio.instagram && <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#fff0f5' : 'rgba(225,48,108,0.1)', color: '#E1306C', textDecoration: 'none' }}>Instagram</a>}
+              {negocio.facebook && <a href={'https://facebook.com/' + negocio.facebook} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#f0f4ff' : 'rgba(24,119,242,0.1)', color: '#1877F2', textDecoration: 'none' }}>Facebook</a>}
+              {negocio.tiktok && <a href={'https://tiktok.com/' + negocio.tiktok} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: bgSubtle, color: textSub, textDecoration: 'none' }}>TikTok</a>}
+              {negocio.google_maps && <a href={negocio.google_maps} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#fff3f3' : 'rgba(234,67,53,0.1)', color: '#EA4335', textDecoration: 'none' }}>Ver en Maps</a>}
             </div>
           )}
 
@@ -475,9 +420,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   {PASO_LABELS[p-1]}
                 </span>
               </div>
-              {i < 3 && (
-                <div style={{ width: '48px', height: '2px', background: paso > p ? color : borderColor, margin: '0 4px', marginBottom: '18px', transition: 'background 0.3s' }} />
-              )}
+              {i < 3 && <div style={{ width: '48px', height: '2px', background: paso > p ? color : borderColor, margin: '0 4px', marginBottom: '18px', transition: 'background 0.3s' }} />}
             </div>
           ))}
         </div>
@@ -493,7 +436,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 <button key={s.id} className="btn-servicio" onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
                   style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.8rem', flexShrink: 0, letterSpacing: '-0.02em' }}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.8rem', flexShrink: 0 }}>
                       {s.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
                     </div>
                     <div>
@@ -501,9 +444,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                       <div style={{ color: textSub, fontSize: '0.8rem' }}>⏱ {s.duracion_minutos} min</div>
                     </div>
                   </div>
-                  <div style={{ fontWeight: '800', color, fontSize: '1.05rem', flexShrink: 0, marginLeft: '0.5rem' }}>
-                    ${Number(s.precio).toLocaleString()}
-                  </div>
+                  <div style={{ fontWeight: '800', color, fontSize: '1.05rem', flexShrink: 0, marginLeft: '0.5rem' }}>${Number(s.precio).toLocaleString()}</div>
                 </button>
               ))}
             </div>
@@ -553,13 +494,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Fecha</label>
                 <input type="date" min={fechaMin} value={seleccion.fecha}
-                  onChange={e => {
-                    if (esDiaDisponible(e.target.value)) {
-                      setSeleccion({...seleccion, fecha: e.target.value, hora: ''})
-                    } else {
-                      alert('El negocio no atiende ese día')
-                    }
-                  }}
+                  onChange={e => { if (esDiaDisponible(e.target.value)) { setSeleccion({...seleccion, fecha: e.target.value, hora: ''}) } else { alert('El negocio no atiende ese día') } }}
                   style={estiloInput} />
               </div>
               {seleccion.fecha && (
@@ -579,9 +514,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 <div style={{ background: colorAlpha(0.08), border: '1.5px solid ' + colorAlpha(0.2), borderRadius: '14px', padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{ fontSize: '1.25rem' }}>📅</span>
                   <div>
-                    <div style={{ fontWeight: '700', color: textColor, fontSize: '0.9rem' }}>
-                      {new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                    </div>
+                    <div style={{ fontWeight: '700', color: textColor, fontSize: '0.9rem' }}>{new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
                     <div style={{ color, fontSize: '0.85rem', fontWeight: '600' }}>{seleccion.hora} hs</div>
                   </div>
                 </div>
