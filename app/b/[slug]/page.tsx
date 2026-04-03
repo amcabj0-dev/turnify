@@ -48,7 +48,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [confirmado, setConfirmado] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [vistaGaleria, setVistaGaleria] = useState<string | null>(null)
-
   const [modoCancelar, setModoCancelar] = useState(false)
   const [waCancelar, setWaCancelar] = useState('')
   const [turnosCancelables, setTurnosCancelables] = useState<any[]>([])
@@ -82,10 +81,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waSinPrefijo).single()
     if (cliente) {
       const { data: turnos } = await supabase
-        .from('turnos')
-        .select('*, servicios(*)')
-        .eq('negocio_id', negocio.id)
-        .eq('cliente_id', cliente.id)
+        .from('turnos').select('*, servicios(*)')
+        .eq('negocio_id', negocio.id).eq('cliente_id', cliente.id)
         .in('estado', ['pendiente', 'confirmado'])
         .gte('fecha_hora', new Date().toISOString())
         .order('fecha_hora', { ascending: true })
@@ -106,7 +103,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     setGuardando(true)
     const waSinPrefijo = normalizarWA(seleccion.whatsapp)
     let clienteId = null
-
     const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waSinPrefijo).single()
     if (clienteExiste) {
       clienteId = clienteExiste.id
@@ -114,31 +110,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: waSinPrefijo }]).select().single()
       clienteId = nuevoCliente?.id
     }
-
     await supabase.from('turnos').insert([{
-      negocio_id: negocio.id,
-      cliente_id: clienteId,
-      empleado_id: seleccion.empleado?.id || null,
-      servicio_id: seleccion.servicio?.id,
+      negocio_id: negocio.id, cliente_id: clienteId,
+      empleado_id: seleccion.empleado?.id || null, servicio_id: seleccion.servicio?.id,
       fecha_hora: seleccion.fecha + 'T' + seleccion.hora + ':00',
-      forma_pago: seleccion.pago,
-      monto: seleccion.servicio?.precio || 0,
-      estado: 'pendiente'
+      forma_pago: seleccion.pago, monto: seleccion.servicio?.precio || 0, estado: 'pendiente'
     }])
-
     if (negocio.whatsapp_notif) {
       const fecha = new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
       const mensaje = 'Nuevo turno en ' + negocio.nombre + '%0A' +
         'Cliente: ' + seleccion.nombre + '%0A' +
         'Servicio: ' + seleccion.servicio?.nombre + '%0A' +
         (seleccion.empleado ? 'Con: ' + seleccion.empleado?.nombre + '%0A' : '') +
-        'Fecha: ' + fecha + '%0A' +
-        'Hora: ' + seleccion.hora + '%0A' +
-        'Pago: ' + seleccion.pago + '%0A' +
-        'WhatsApp: ' + prefijoPais.codigo + waSinPrefijo
+        'Fecha: ' + fecha + '%0A' + 'Hora: ' + seleccion.hora + '%0A' +
+        'Pago: ' + seleccion.pago + '%0A' + 'WhatsApp: ' + prefijoPais.codigo + waSinPrefijo
       window.open('https://wa.me/549' + negocio.whatsapp_notif + '?text=' + mensaje, '_blank')
     }
-
     setConfirmado(true)
     setGuardando(false)
   }
@@ -163,17 +150,17 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   }
 
   const color = negocio?.color || '#4f8ef7'
-  const tema = negocio?.tema || 'dark'
+  const tema = negocio?.tema || 'light'
   const fuente = FUENTES[negocio?.fuente || 'moderna']
   const borderRadius = negocio?.forma_botones === 'pill' ? '9999px' : negocio?.forma_botones === 'redondeado' ? '14px' : '6px'
   const esPremium = negocio?.plan === 'premium'
   const fechaMin = new Date().toISOString().split('T')[0]
 
-  const bgColor = tema === 'light' ? '#faf9f7' : '#12111a'
+  const bgColor = tema === 'light' ? '#f8f8f8' : '#12111a'
   const bgCard = tema === 'light' ? '#ffffff' : '#1c1a26'
   const bgSubtle = tema === 'light' ? '#f3f1ee' : '#221f2e'
-  const textColor = tema === 'light' ? '#1a1714' : '#ede9e3'
-  const textSub = tema === 'light' ? '#6b6460' : '#8a8099'
+  const textColor = tema === 'light' ? '#111111' : '#ede9e3'
+  const textSub = tema === 'light' ? '#666666' : '#8a8099'
   const borderColor = tema === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)'
   const shadowCard = tema === 'light' ? '0 2px 12px rgba(0,0,0,0.06)' : '0 2px 16px rgba(0,0,0,0.3)'
 
@@ -220,25 +207,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
+  // ── MODO CANCELAR ─────────────────────────────────────────────
   if (modoCancelar) return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
-      <div style={{ height: '3px', background: color }} />
-      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
+      <div style={{ height: '4px', background: color }} />
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
         <button onClick={() => { setModoCancelar(false); setCancelado(false); setTurnosCancelables([]); setWaCancelar('') }}
           style={{ display: 'flex', alignItems: 'center', gap: '6px', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '2rem', padding: 0, fontFamily: fuente }}>
           ← Volver al inicio
         </button>
-        <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>Cancelar turno</h2>
-          <p style={{ color: textSub, fontSize: '0.9rem', margin: 0 }}>Ingresá tu número de WhatsApp para ver tus turnos activos</p>
-        </div>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor }}>Cancelar turno</h2>
+        <p style={{ color: textSub, fontSize: '0.9rem', margin: '0 0 1.5rem' }}>Ingresá tu número de WhatsApp para ver tus turnos activos</p>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
           <select value={prefijoCancelar.codigo}
             onChange={e => setPrefijoCancelar(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
             style={estiloSelect}>
-            {PAISES.map(p => (
-              <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>
-            ))}
+            {PAISES.map(p => <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>)}
           </select>
           <input type="tel" placeholder="Número sin prefijo" value={waCancelar}
             onChange={e => setWaCancelar(e.target.value)}
@@ -249,12 +233,12 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </button>
         </div>
         {cancelado && (
-          <div style={{ background: tema === 'light' ? '#f0faf5' : 'rgba(52,199,120,0.1)', border: '1.5px solid ' + (tema === 'light' ? '#b8e8cc' : 'rgba(52,199,120,0.25)'), borderRadius: '14px', padding: '1rem', marginBottom: '1rem', color: tema === 'light' ? '#1a7a45' : '#34c778', fontSize: '0.875rem', textAlign: 'center', fontWeight: '600' }}>
+          <div style={{ background: '#f0faf5', border: '1.5px solid #b8e8cc', borderRadius: '14px', padding: '1rem', marginBottom: '1rem', color: '#1a7a45', fontSize: '0.875rem', textAlign: 'center', fontWeight: '600' }}>
             ✓ Turno cancelado correctamente
           </div>
         )}
         {waCancelar && !buscando && turnosCancelables.length === 0 ? (
-          <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '16px', padding: '2rem', textAlign: 'center', color: textSub, fontSize: '0.875rem', boxShadow: shadowCard }}>
+          <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '16px', padding: '2rem', textAlign: 'center', color: textSub, fontSize: '0.875rem' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔍</div>
             No encontramos turnos pendientes con ese número
           </div>
@@ -264,20 +248,14 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               <div key={turno.id} style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '16px', padding: '1.25rem', boxShadow: shadowCard }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                   <div>
-                    <div style={{ fontWeight: '700', color: textColor, marginBottom: '4px', fontSize: '1rem' }}>{turno.servicios?.nombre}</div>
-                    <div style={{ fontSize: '0.875rem', color, fontWeight: '600' }}>
-                      {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                    </div>
-                    <div style={{ fontSize: '0.875rem', color: textSub, marginTop: '2px' }}>
-                      {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
-                    </div>
+                    <div style={{ fontWeight: '700', color: textColor, marginBottom: '4px' }}>{turno.servicios?.nombre}</div>
+                    <div style={{ fontSize: '0.875rem', color, fontWeight: '600' }}>{new Date(turno.fecha_hora).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+                    <div style={{ fontSize: '0.875rem', color: textSub, marginTop: '2px' }}>{new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs</div>
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '20px', background: tema === 'light' ? '#fff8e6' : 'rgba(255,196,0,0.12)', color: '#c48a00', border: '1.5px solid ' + (tema === 'light' ? '#fde8a0' : 'rgba(255,196,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                    {turno.estado}
-                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '20px', background: '#fff8e6', color: '#c48a00', border: '1.5px solid #fde8a0', textTransform: 'uppercase' }}>{turno.estado}</span>
                 </div>
                 <button onClick={() => cancelarTurno(turno.id)}
-                  style={{ width: '100%', background: tema === 'light' ? '#fff5f5' : 'rgba(255,90,90,0.1)', color: '#e84040', border: '1.5px solid ' + (tema === 'light' ? '#ffd0d0' : 'rgba(255,90,90,0.25)'), borderRadius, padding: '0.625rem', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', fontFamily: fuente }}>
+                  style={{ width: '100%', background: '#fff5f5', color: '#e84040', border: '1.5px solid #ffd0d0', borderRadius, padding: '0.625rem', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', fontFamily: fuente }}>
                   Cancelar este turno
                 </button>
               </div>
@@ -288,15 +266,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
+  // ── CONFIRMADO ────────────────────────────────────────────────
   if (confirmado) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', fontFamily: fuente }}>
       <style>{`
         @keyframes popIn { 0% { transform: scale(0.7) rotate(-10deg); opacity: 0; } 70% { transform: scale(1.1) rotate(3deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       `}</style>
-      <div style={{ textAlign: 'center', maxWidth: '440px', width: '100%' }}>
+      <div style={{ textAlign: 'center', maxWidth: '480px', width: '100%' }}>
         <div style={{ fontSize: '4rem', marginBottom: '1.25rem', display: 'inline-block', animation: 'popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both' }}>🎉</div>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: textColor, marginBottom: '0.5rem', letterSpacing: '-0.03em', animation: 'slideUp 0.4s 0.15s both' }}>¡Todo listo!</h2>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: textColor, marginBottom: '0.5rem', animation: 'slideUp 0.4s 0.15s both' }}>¡Todo listo!</h2>
         <p style={{ color: textSub, marginBottom: '1.75rem', fontSize: '0.95rem', animation: 'slideUp 0.4s 0.25s both' }}>
           {negocio.mensaje_confirmacion || 'Tu turno quedó reservado. ¡Te esperamos!'}
         </p>
@@ -318,9 +297,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', animation: 'slideUp 0.4s 0.45s both' }}>
           <button onClick={() => { setConfirmado(false); setPaso(1); setSeleccion({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' }) }}
-            style={{ ...estiloBotonPrimario }}>
-            Sacar otro turno
-          </button>
+            style={{ ...estiloBotonPrimario }}>Sacar otro turno</button>
           <button onClick={() => setModoCancelar(true)}
             style={{ background: 'transparent', color: textSub, border: '1.5px solid ' + borderColor, borderRadius, padding: '0.75rem', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem', fontFamily: fuente }}>
             Cancelar este turno
@@ -330,8 +307,9 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
+  // ── PÁGINA PRINCIPAL ──────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .paso-content { animation: fadeIn 0.25s ease both; }
@@ -340,8 +318,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         .btn-hora:hover { border-color: ${color} !important; }
         .btn-pago:hover { border-color: ${color} !important; }
         input:focus { border-color: ${color} !important; }
+        @keyframes heroFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
+      {/* Lightbox galería */}
       {vistaGaleria && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           onClick={() => setVistaGaleria(null)}>
@@ -350,73 +330,112 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       )}
 
-      <div style={{ height: '3px', background: color, width: '100%' }} />
-
-      <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, boxShadow: tema === 'light' ? '0 1px 8px rgba(0,0,0,0.04)' : 'none', width: '100%' }}>
-        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.5rem 1rem 1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
-            {negocio.logo_url ? (
-              <img src={negocio.logo_url} alt="Logo" style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + borderColor, boxShadow: '0 2px 10px ' + colorAlpha(0.2) }} />
-            ) : (
-              <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: colorAlpha(0.12), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
-                {negocio.nombre?.[0]?.toUpperCase()}
+      {/* ── HERO BANNER ── */}
+      <div style={{ position: 'relative', width: '100%', height: negocio.foto_portada ? '320px' : 'auto', minHeight: negocio.foto_portada ? '320px' : '0', overflow: 'hidden' }}>
+        {negocio.foto_portada ? (
+          <>
+            {/* Imagen de fondo */}
+            <img src={negocio.foto_portada} alt="Portada"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+            {/* Overlay degradado */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%)' }} />
+            {/* Contenido sobre el hero */}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '2rem 1.5rem', maxWidth: '900px', margin: '0 auto', left: 0, right: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.25rem', animation: 'heroFadeIn 0.6s ease both' }}>
+                {negocio.logo_url ? (
+                  <img src={negocio.logo_url} alt="Logo" style={{ width: '80px', height: '80px', borderRadius: '20px', objectFit: 'cover', flexShrink: 0, border: '3px solid rgba(255,255,255,0.8)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }} />
+                ) : (
+                  <div style={{ width: '80px', height: '80px', borderRadius: '20px', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', flexShrink: 0, border: '3px solid rgba(255,255,255,0.8)' }}>
+                    {negocio.nombre?.[0]?.toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: '800', margin: '0 0 0.375rem', color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1.15, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                    {negocio.nombre}
+                  </h1>
+                  {(negocio.mensaje_bienvenida || negocio.descripcion) && (
+                    <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                      {negocio.mensaje_bienvenida || negocio.descripcion}
+                    </p>
+                  )}
+                </div>
               </div>
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.375rem', fontWeight: '800', margin: 0, color: textColor, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{negocio.nombre}</h1>
-                <span style={{ fontSize: '0.65rem', fontWeight: '700', padding: '3px 8px', borderRadius: '9999px', background: colorAlpha(0.12), color, letterSpacing: '0.05em', textTransform: 'uppercase' }}>En línea</span>
-              </div>
-              {(negocio.mensaje_bienvenida || negocio.descripcion) && (
-                <p style={{ color: textSub, fontSize: '0.85rem', margin: '0.375rem 0 0', lineHeight: 1.5 }}>
-                  {negocio.mensaje_bienvenida || negocio.descripcion}
-                </p>
+            </div>
+          </>
+        ) : (
+          /* Sin foto de portada: header clásico */
+          <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, padding: '1.5rem 1rem 1.25rem', maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ height: '3px', background: color, borderRadius: '9999px', marginBottom: '1.25rem' }} />
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+              {negocio.logo_url ? (
+                <img src={negocio.logo_url} alt="Logo" style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + borderColor }} />
+              ) : (
+                <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: colorAlpha(0.12), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                  {negocio.nombre?.[0]?.toUpperCase()}
+                </div>
               )}
+              <div style={{ flex: 1 }}>
+                <h1 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.25rem', color: textColor }}>{negocio.nombre}</h1>
+                {(negocio.mensaje_bienvenida || negocio.descripcion) && (
+                  <p style={{ color: textSub, fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
+                    {negocio.mensaje_bienvenida || negocio.descripcion}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+        )}
+      </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: negocio.instagram || negocio.facebook || negocio.tiktok || negocio.google_maps ? '0.875rem' : '0' }}>
+      {/* ── INFO DEL NEGOCIO ── */}
+      <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem 1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between' }}>
+          {/* Chips de info */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {negocio.direccion && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>📍 {negocio.direccion}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>📍 {negocio.direccion}</span>
             )}
             {negocio.horario_apertura && negocio.horario_cierre && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>🕐 {negocio.horario_apertura.slice(0,5)} – {negocio.horario_cierre.slice(0,5)}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>🕐 {negocio.horario_apertura.slice(0,5)} – {negocio.horario_cierre.slice(0,5)}</span>
             )}
             {negocio.dias_atencion && negocio.dias_atencion.length > 0 && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}</span>
             )}
           </div>
-
-          {(negocio.instagram || negocio.facebook || negocio.tiktok || negocio.google_maps) && (
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {negocio.instagram && <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#fff0f5' : 'rgba(225,48,108,0.1)', color: '#E1306C', textDecoration: 'none' }}>Instagram</a>}
-              {negocio.facebook && <a href={'https://facebook.com/' + negocio.facebook} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#f0f4ff' : 'rgba(24,119,242,0.1)', color: '#1877F2', textDecoration: 'none' }}>Facebook</a>}
-              {negocio.tiktok && <a href={'https://tiktok.com/' + negocio.tiktok} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: bgSubtle, color: textSub, textDecoration: 'none' }}>TikTok</a>}
-              {negocio.google_maps && <a href={negocio.google_maps} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: tema === 'light' ? '#fff3f3' : 'rgba(234,67,53,0.1)', color: '#EA4335', textDecoration: 'none' }}>Ver en Maps</a>}
-            </div>
-          )}
-
-          {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '2px' }}>
-              {negocio.galeria.map((url: string, i: number) => (
-                <img key={i} src={url} alt={'Foto ' + (i+1)} onClick={() => setVistaGaleria(url)}
-                  style={{ width: '88px', height: '88px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '1.5px solid ' + borderColor }} />
-              ))}
-            </div>
-          )}
+          {/* Redes sociales */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {negocio.instagram && <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: '#fff0f5', color: '#E1306C', textDecoration: 'none' }}>Instagram</a>}
+            {negocio.facebook && <a href={'https://facebook.com/' + negocio.facebook} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: '#f0f4ff', color: '#1877F2', textDecoration: 'none' }}>Facebook</a>}
+            {negocio.tiktok && <a href={'https://tiktok.com/' + negocio.tiktok} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: bgSubtle, color: textSub, textDecoration: 'none' }}>TikTok</a>}
+            {negocio.google_maps && <a href={negocio.google_maps} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: '#fff3f3', color: '#EA4335', textDecoration: 'none' }}>Ver en Maps</a>}
+          </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: '480px', width: '100%', margin: '0 auto', padding: '1.75rem 1rem 3rem' }}>
+      {/* Galería Premium */}
+      {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem 1.25rem 0' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px' }}>
+            {negocio.galeria.map((url: string, i: number) => (
+              <img key={i} src={url} alt={'Foto ' + (i+1)} onClick={() => setVistaGaleria(url)}
+                style={{ width: '100px', height: '100px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '1.5px solid ' + borderColor }} />
+            ))}
+          </div>
+        </div>
+      )}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', gap: 0 }}>
+      {/* ── CONTENIDO: STEPPER + PASOS ── */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
+
+        {/* Stepper */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2.5rem', gap: 0 }}>
           {[1,2,3,4].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: paso > p ? '0.875rem' : '0.8rem', fontWeight: '700', background: paso > p ? color : paso === p ? color : bgSubtle, color: paso >= p ? '#fff' : textSub, border: paso === p ? '3px solid ' + color : paso > p ? '3px solid ' + color : '2px solid ' + borderColor, transition: 'all 0.2s', boxShadow: paso === p ? '0 0 0 4px ' + colorAlpha(0.15) : 'none' }}>
                   {paso > p ? '✓' : p}
                 </div>
-                <span style={{ fontSize: '0.62rem', fontWeight: paso === p ? '700' : '500', color: paso >= p ? color : textSub, whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
+                <span style={{ fontSize: '0.62rem', fontWeight: paso === p ? '700' : '500', color: paso >= p ? color : textSub, whiteSpace: 'nowrap' }}>
                   {PASO_LABELS[p-1]}
                 </span>
               </div>
@@ -425,26 +444,27 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           ))}
         </div>
 
+        {/* PASO 1 */}
         {paso === 1 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Qué servicio necesitás?</h2>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Qué servicio necesitás?</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Elegí el servicio que querés reservar</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {servicios.map((s) => (
                 <button key={s.id} className="btn-servicio" onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
-                  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.8rem', flexShrink: 0 }}>
+                  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.85rem', flexShrink: 0 }}>
                       {s.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: '700', color: textColor, fontSize: '0.95rem', marginBottom: '2px' }}>{s.nombre}</div>
+                      <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem', marginBottom: '2px' }}>{s.nombre}</div>
                       <div style={{ color: textSub, fontSize: '0.8rem' }}>⏱ {s.duracion_minutos} min</div>
                     </div>
                   </div>
-                  <div style={{ fontWeight: '800', color, fontSize: '1.05rem', flexShrink: 0, marginLeft: '0.5rem' }}>${Number(s.precio).toLocaleString()}</div>
+                  <div style={{ fontWeight: '800', color, fontSize: '1.1rem', flexShrink: 0, marginLeft: '0.5rem' }}>${Number(s.precio).toLocaleString()}</div>
                 </button>
               ))}
             </div>
@@ -455,28 +475,29 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
+        {/* PASO 2 */}
         {paso === 2 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Con quién querés atenderte?</h2>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Con quién querés atenderte?</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Podés elegir o dejar que te asignemos el primero disponible</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button className="btn-empleado" onClick={() => { setSeleccion({...seleccion, empleado: null}); setPaso(3) }}
-                style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.875rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: bgSubtle, border: '1.5px solid ' + borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', flexShrink: 0 }}>✨</div>
+                style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: bgSubtle, border: '1.5px solid ' + borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>✨</div>
                 <div>
-                  <div style={{ fontWeight: '700', color: textColor, fontSize: '0.95rem' }}>Sin preferencia</div>
+                  <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem' }}>Sin preferencia</div>
                   <div style={{ color: textSub, fontSize: '0.8rem' }}>El primero disponible</div>
                 </div>
               </button>
               {empleados.map(e => (
                 <button key={e.id} className="btn-empleado" onClick={() => { setSeleccion({...seleccion, empleado: e}); setPaso(3) }}
-                  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.875rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.9rem', flexShrink: 0 }}>
+                  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '1rem', flexShrink: 0 }}>
                     {e.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
                   </div>
-                  <div style={{ fontWeight: '700', color: textColor, fontSize: '0.95rem' }}>{e.nombre}</div>
+                  <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem' }}>{e.nombre}</div>
                 </button>
               ))}
             </div>
@@ -484,10 +505,11 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
+        {/* PASO 3 */}
         {paso === 3 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Cuándo querés el turno?</h2>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Cuándo querés el turno?</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Elegí el día y el horario que mejor te quede</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -503,7 +525,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
                     {generarHoras().map(h => (
                       <button key={h} className="btn-hora" onClick={() => setSeleccion({...seleccion, hora: h})}
-                        style={{ padding: '0.625rem 0.375rem', borderRadius: '12px', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer', border: '1.5px solid', background: seleccion.hora === h ? color : bgCard, color: seleccion.hora === h ? '#fff' : textColor, borderColor: seleccion.hora === h ? color : borderColor, transition: 'all 0.15s', boxShadow: seleccion.hora === h ? '0 2px 8px ' + colorAlpha(0.3) : 'none', fontFamily: fuente }}>
+                        style={{ padding: '0.75rem 0.375rem', borderRadius: '12px', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer', border: '1.5px solid', background: seleccion.hora === h ? color : bgCard, color: seleccion.hora === h ? '#fff' : textColor, borderColor: seleccion.hora === h ? color : borderColor, transition: 'all 0.15s', fontFamily: fuente }}>
                         {h}
                       </button>
                     ))}
@@ -527,18 +549,18 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
+        {/* PASO 4 */}
         {paso === 4 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>Tus datos</h2>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>Tus datos</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Último paso — completá tus datos para confirmar</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tu nombre</label>
                 <input type="text" placeholder="Nombre completo" value={seleccion.nombre}
-                  onChange={e => setSeleccion({...seleccion, nombre: e.target.value})}
-                  style={estiloInput} />
+                  onChange={e => setSeleccion({...seleccion, nombre: e.target.value})} style={estiloInput} />
               </div>
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WhatsApp</label>
@@ -546,13 +568,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   <select value={prefijoPais.codigo}
                     onChange={e => setPrefijoPais(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
                     style={estiloSelect}>
-                    {PAISES.map(p => (
-                      <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>
-                    ))}
+                    {PAISES.map(p => <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>)}
                   </select>
                   <input type="tel" placeholder="Número sin prefijo" value={seleccion.whatsapp}
-                    onChange={e => setSeleccion({...seleccion, whatsapp: e.target.value})}
-                    style={estiloInput} />
+                    onChange={e => setSeleccion({...seleccion, whatsapp: e.target.value})} style={estiloInput} />
                 </div>
               </div>
               <div>
@@ -600,7 +619,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         )}
       </div>
 
-      <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid ' + borderColor, width: '100%' }}>
+      {/* Footer */}
+      <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid ' + borderColor }}>
         <p style={{ color: textSub, fontSize: '0.75rem', margin: 0 }}>
           Reservas gestionadas por <span style={{ color, fontWeight: '700' }}>Turnify</span>
         </p>

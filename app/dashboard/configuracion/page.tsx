@@ -6,43 +6,28 @@ import Link from 'next/link'
 export default function Configuracion() {
   const [negocio, setNegocio] = useState(null)
   const [form, setForm] = useState({
-    nombre: '',
-    descripcion: '',
-    direccion: '',
-    whatsapp_notif: '',
-    color: '#c8f135',
-    horario_apertura: '09:00',
-    horario_cierre: '18:00',
-    tema: 'dark',
-    fuente: 'moderna',
-    forma_botones: 'pill',
-    mensaje_bienvenida: '',
-    mensaje_confirmacion: '',
-    instagram: '',
-    facebook: '',
-    tiktok: '',
-    google_maps: '',
-    dias_atencion: ['1','2','3','4','5'],
-    intervalo_turnos: 30,
-    turnos_simultaneos: 1,
+    nombre: '', descripcion: '', direccion: '', whatsapp_notif: '',
+    color: '#c8f135', horario_apertura: '09:00', horario_cierre: '18:00',
+    tema: 'light', fuente: 'moderna', forma_botones: 'pill',
+    mensaje_bienvenida: '', mensaje_confirmacion: '',
+    instagram: '', facebook: '', tiktok: '', google_maps: '',
+    dias_atencion: ['1','2','3','4','5'], intervalo_turnos: 30, turnos_simultaneos: 1,
   })
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
   const [subiendoLogo, setSubiendoLogo] = useState(false)
+  const [subiendoPortada, setSubiendoPortada] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [logoUrl, setLogoUrl] = useState('')
+  const [portadaUrl, setPortadaUrl] = useState('')
   const [galeriaUrls, setGaleriaUrls] = useState([])
   const logoRef = useRef(null)
+  const portadaRef = useRef(null)
   const galeriaRef = useRef(null)
 
   const DIAS = [
-    { v: '0', l: 'Dom' },
-    { v: '1', l: 'Lun' },
-    { v: '2', l: 'Mar' },
-    { v: '3', l: 'Mié' },
-    { v: '4', l: 'Jue' },
-    { v: '5', l: 'Vie' },
-    { v: '6', l: 'Sáb' },
+    { v: '0', l: 'Dom' }, { v: '1', l: 'Lun' }, { v: '2', l: 'Mar' },
+    { v: '3', l: 'Mié' }, { v: '4', l: 'Jue' }, { v: '5', l: 'Vie' }, { v: '6', l: 'Sáb' },
   ]
 
   const REDES = [
@@ -64,7 +49,7 @@ export default function Configuracion() {
         color: negocioGuardado.color || '#c8f135',
         horario_apertura: negocioGuardado.horario_apertura || '09:00',
         horario_cierre: negocioGuardado.horario_cierre || '18:00',
-        tema: negocioGuardado.tema || 'dark',
+        tema: negocioGuardado.tema || 'light',
         fuente: negocioGuardado.fuente || 'moderna',
         forma_botones: negocioGuardado.forma_botones || 'pill',
         mensaje_bienvenida: negocioGuardado.mensaje_bienvenida || '',
@@ -78,6 +63,7 @@ export default function Configuracion() {
         turnos_simultaneos: negocioGuardado.turnos_simultaneos || 1,
       })
       setLogoUrl(negocioGuardado.logo_url || '')
+      setPortadaUrl(negocioGuardado.foto_portada || '')
       setGaleriaUrls(negocioGuardado.galeria || [])
     } else {
       window.location.href = '/login'
@@ -109,6 +95,34 @@ export default function Configuracion() {
       alert('Error al subir: ' + error.message)
     }
     setSubiendoLogo(false)
+  }
+
+  const subirPortada = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setSubiendoPortada(true)
+    const ext = file.name.split('.').pop()
+    const path = negocio.id + '/portada-' + Date.now() + '.' + ext
+    const { error } = await supabase.storage.from('logos').upload(path, file)
+    if (!error) {
+      const { data } = supabase.storage.from('logos').getPublicUrl(path)
+      setPortadaUrl(data.publicUrl)
+      await supabase.from('negocios').update({ foto_portada: data.publicUrl }).eq('id', negocio.id)
+      const updated = { ...negocio, foto_portada: data.publicUrl }
+      localStorage.setItem('negocio', JSON.stringify(updated))
+      setNegocio(updated)
+    } else {
+      alert('Error al subir: ' + error.message)
+    }
+    setSubiendoPortada(false)
+  }
+
+  const eliminarPortada = async () => {
+    setPortadaUrl('')
+    await supabase.from('negocios').update({ foto_portada: null }).eq('id', negocio.id)
+    const updated = { ...negocio, foto_portada: null }
+    localStorage.setItem('negocio', JSON.stringify(updated))
+    setNegocio(updated)
   }
 
   const subirFotoGaleria = async (e) => {
@@ -148,29 +162,16 @@ export default function Configuracion() {
     const { data, error } = await supabase
       .from('negocios')
       .update({
-        nombre: form.nombre,
-        descripcion: form.descripcion,
-        direccion: form.direccion,
-        whatsapp_notif: form.whatsapp_notif,
-        color: form.color,
-        horario_apertura: form.horario_apertura,
-        horario_cierre: form.horario_cierre,
-        tema: form.tema,
-        fuente: form.fuente,
-        forma_botones: form.forma_botones,
-        mensaje_bienvenida: form.mensaje_bienvenida,
-        mensaje_confirmacion: form.mensaje_confirmacion,
-        instagram: form.instagram,
-        facebook: form.facebook,
-        tiktok: form.tiktok,
-        google_maps: form.google_maps,
+        nombre: form.nombre, descripcion: form.descripcion, direccion: form.direccion,
+        whatsapp_notif: form.whatsapp_notif, color: form.color,
+        horario_apertura: form.horario_apertura, horario_cierre: form.horario_cierre,
+        tema: form.tema, fuente: form.fuente, forma_botones: form.forma_botones,
+        mensaje_bienvenida: form.mensaje_bienvenida, mensaje_confirmacion: form.mensaje_confirmacion,
+        instagram: form.instagram, facebook: form.facebook, tiktok: form.tiktok, google_maps: form.google_maps,
         dias_atencion: form.dias_atencion,
-        intervalo_turnos: Number(form.intervalo_turnos),
-        turnos_simultaneos: Number(form.turnos_simultaneos),
+        intervalo_turnos: Number(form.intervalo_turnos), turnos_simultaneos: Number(form.turnos_simultaneos),
       })
-      .eq('id', negocio.id)
-      .select()
-      .single()
+      .eq('id', negocio.id).select().single()
 
     if (!error && data) {
       localStorage.setItem('negocio', JSON.stringify(data))
@@ -206,6 +207,7 @@ export default function Configuracion() {
 
         <form onSubmit={guardar} className="flex flex-col gap-5">
 
+          {/* LOGO */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-1">🖼️ Logo del negocio</h3>
             <p className="text-gray-500 text-sm mb-4">Se muestra en tu página pública</p>
@@ -224,6 +226,36 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* FOTO DE PORTADA */}
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
+            <h3 className="font-bold mb-1">🌅 Foto de portada</h3>
+            <p className="text-gray-500 text-sm mb-4">Aparece como banner en tu página pública. Usá una foto horizontal de buena calidad.</p>
+            {portadaUrl ? (
+              <div className="relative rounded-xl overflow-hidden mb-3" style={{ height: '160px' }}>
+                <img src={portadaUrl} alt="Portada" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button type="button" onClick={() => portadaRef.current?.click()}
+                    className="bg-white text-black text-sm font-bold px-4 py-2 rounded-xl">
+                    {subiendoPortada ? 'Subiendo...' : 'Cambiar'}
+                  </button>
+                  <button type="button" onClick={eliminarPortada}
+                    className="bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-xl">
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => portadaRef.current?.click()}
+                className="w-full border-2 border-dashed border-white/20 rounded-xl py-8 flex flex-col items-center gap-2 hover:border-white/40 transition-colors mb-3">
+                <span className="text-3xl">🌅</span>
+                <span className="text-sm text-gray-400 font-medium">{subiendoPortada ? 'Subiendo...' : 'Subir foto de portada'}</span>
+                <span className="text-xs text-gray-600">JPG o PNG horizontal · Recomendado 1200x400px</span>
+              </button>
+            )}
+            <input ref={portadaRef} type="file" accept="image/*" onChange={subirPortada} className="hidden" />
+          </div>
+
+          {/* DATOS */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">📋 Datos del negocio</h3>
             <div className="flex flex-col gap-4">
@@ -247,6 +279,7 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* MENSAJES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">💬 Mensajes personalizados</h3>
             <div className="flex flex-col gap-4">
@@ -265,14 +298,13 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* REDES */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">📱 Redes sociales</h3>
             <div className="flex flex-col gap-3">
               {REDES.map(red => (
                 <div key={red.key} className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#c8f135] transition-colors">
-                  <span className="text-xs font-black mr-3 w-16 flex-shrink-0" style={{ color: red.color }}>
-                    {red.label.toUpperCase()}
-                  </span>
+                  <span className="text-xs font-black mr-3 w-16 flex-shrink-0" style={{ color: red.color }}>{red.label.toUpperCase()}</span>
                   <input type="text" placeholder={red.placeholder} value={form[red.key]}
                     onChange={e => setForm({...form, [red.key]: e.target.value})}
                     className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm" />
@@ -281,6 +313,7 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* VISUAL */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">🎨 Personalización visual</h3>
             <div className="flex flex-col gap-5">
@@ -300,8 +333,8 @@ export default function Configuracion() {
                 <label className="text-gray-400 text-sm mb-3 block">Tema de la página pública</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { v: 'dark', l: '🌑 Oscuro', desc: 'Fondo negro' },
                     { v: 'light', l: '☀️ Claro', desc: 'Fondo blanco' },
+                    { v: 'dark', l: '🌑 Oscuro', desc: 'Fondo negro' },
                   ].map(t => (
                     <button key={t.v} type="button" onClick={() => setForm({...form, tema: t.v})}
                       className="border rounded-xl p-3 text-left transition-colors"
@@ -315,11 +348,7 @@ export default function Configuracion() {
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Fuente de texto</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { v: 'moderna', l: 'Moderna' },
-                    { v: 'clasica', l: 'Clásica' },
-                    { v: 'elegante', l: 'Elegante' },
-                  ].map(f => (
+                  {[{ v: 'moderna', l: 'Moderna' }, { v: 'clasica', l: 'Clásica' }, { v: 'elegante', l: 'Elegante' }].map(f => (
                     <button key={f.v} type="button" onClick={() => setForm({...form, fuente: f.v})}
                       className="border rounded-xl py-2 px-3 text-sm font-medium transition-colors"
                       style={{ borderColor: form.fuente === f.v ? form.color : 'rgba(255,255,255,0.1)', background: form.fuente === f.v ? form.color + '15' : 'transparent', color: form.fuente === f.v ? form.color : '#9ca3af' }}>
@@ -331,19 +360,10 @@ export default function Configuracion() {
               <div>
                 <label className="text-gray-400 text-sm mb-3 block">Forma de los botones</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { v: 'pill', l: 'Pill' },
-                    { v: 'redondeado', l: 'Redondeado' },
-                    { v: 'cuadrado', l: 'Cuadrado' },
-                  ].map(b => (
+                  {[{ v: 'pill', l: 'Pill' }, { v: 'redondeado', l: 'Redondeado' }, { v: 'cuadrado', l: 'Cuadrado' }].map(b => (
                     <button key={b.v} type="button" onClick={() => setForm({...form, forma_botones: b.v})}
                       className="border py-2 px-3 text-sm font-medium transition-colors"
-                      style={{
-                        borderRadius: b.v === 'pill' ? '9999px' : b.v === 'redondeado' ? '12px' : '4px',
-                        borderColor: form.forma_botones === b.v ? form.color : 'rgba(255,255,255,0.1)',
-                        background: form.forma_botones === b.v ? form.color + '15' : 'transparent',
-                        color: form.forma_botones === b.v ? form.color : '#9ca3af'
-                      }}>
+                      style={{ borderRadius: b.v === 'pill' ? '9999px' : b.v === 'redondeado' ? '12px' : '4px', borderColor: form.forma_botones === b.v ? form.color : 'rgba(255,255,255,0.1)', background: form.forma_botones === b.v ? form.color + '15' : 'transparent', color: form.forma_botones === b.v ? form.color : '#9ca3af' }}>
                       {b.l}
                     </button>
                   ))}
@@ -352,6 +372,7 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* HORARIOS */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">🕐 Horarios y días</h3>
             <div className="flex flex-col gap-4">
@@ -361,11 +382,7 @@ export default function Configuracion() {
                   {DIAS.map(d => (
                     <button key={d.v} type="button" onClick={() => toggleDia(d.v)}
                       className="px-3 py-2 rounded-xl text-sm font-bold border transition-colors"
-                      style={{
-                        background: form.dias_atencion.includes(d.v) ? form.color : 'transparent',
-                        color: form.dias_atencion.includes(d.v) ? '#000' : '#9ca3af',
-                        borderColor: form.dias_atencion.includes(d.v) ? form.color : 'rgba(255,255,255,0.1)'
-                      }}>
+                      style={{ background: form.dias_atencion.includes(d.v) ? form.color : 'transparent', color: form.dias_atencion.includes(d.v) ? '#000' : '#9ca3af', borderColor: form.dias_atencion.includes(d.v) ? form.color : 'rgba(255,255,255,0.1)' }}>
                       {d.l}
                     </button>
                   ))}
@@ -374,14 +391,12 @@ export default function Configuracion() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-gray-400 text-sm mb-1 block">Apertura</label>
-                  <input type="time" value={form.horario_apertura}
-                    onChange={e => setForm({...form, horario_apertura: e.target.value})}
+                  <input type="time" value={form.horario_apertura} onChange={e => setForm({...form, horario_apertura: e.target.value})}
                     className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" />
                 </div>
                 <div>
                   <label className="text-gray-400 text-sm mb-1 block">Cierre</label>
-                  <input type="time" value={form.horario_cierre}
-                    onChange={e => setForm({...form, horario_cierre: e.target.value})}
+                  <input type="time" value={form.horario_cierre} onChange={e => setForm({...form, horario_cierre: e.target.value})}
                     className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#c8f135] transition-colors" />
                 </div>
               </div>
@@ -404,6 +419,7 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* WHATSAPP */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-1">📱 Notificaciones WhatsApp</h3>
             <p className="text-gray-500 text-sm mb-4">Te avisamos cuando un cliente saca un turno</p>
@@ -416,6 +432,7 @@ export default function Configuracion() {
             <p className="text-gray-600 text-xs mt-2">Sin el 0 y sin el 15</p>
           </div>
 
+          {/* GALERÍA */}
           <div className={`bg-[#1a1a1a] border rounded-2xl p-6 ${esPremium ? 'border-white/10' : 'border-white/05 opacity-60'}`}>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold">📸 Galería de fotos</h3>
