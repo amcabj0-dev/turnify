@@ -9,70 +9,54 @@ const FUENTES = {
 }
 
 const DIAS_NOMBRES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
-
 const PASO_LABELS = ['Servicio', 'Profesional', 'Horario', 'Datos']
 
 const PAISES = [
-  { codigo: '54',  bandera: '🇦🇷', nombre: 'Argentina' },
-  { codigo: '591', bandera: '🇧🇴', nombre: 'Bolivia' },
-  { codigo: '56',  bandera: '🇨🇱', nombre: 'Chile' },
-  { codigo: '57',  bandera: '🇨🇴', nombre: 'Colombia' },
-  { codigo: '506', bandera: '🇨🇷', nombre: 'Costa Rica' },
-  { codigo: '53',  bandera: '🇨🇺', nombre: 'Cuba' },
-  { codigo: '593', bandera: '🇪🇨', nombre: 'Ecuador' },
-  { codigo: '503', bandera: '🇸🇻', nombre: 'El Salvador' },
-  { codigo: '502', bandera: '🇬🇹', nombre: 'Guatemala' },
-  { codigo: '504', bandera: '🇭🇳', nombre: 'Honduras' },
-  { codigo: '52',  bandera: '🇲🇽', nombre: 'México' },
-  { codigo: '505', bandera: '🇳🇮', nombre: 'Nicaragua' },
-  { codigo: '507', bandera: '🇵🇦', nombre: 'Panamá' },
-  { codigo: '595', bandera: '🇵🇾', nombre: 'Paraguay' },
-  { codigo: '51',  bandera: '🇵🇪', nombre: 'Perú' },
-  { codigo: '1787',bandera: '🇵🇷', nombre: 'Puerto Rico' },
-  { codigo: '1809',bandera: '🇩🇴', nombre: 'Rep. Dominicana' },
-  { codigo: '598', bandera: '🇺🇾', nombre: 'Uruguay' },
-  { codigo: '58',  bandera: '🇻🇪', nombre: 'Venezuela' },
+  { codigo: '54',   bandera: '🇦🇷', nombre: 'Argentina' },
+  { codigo: '591',  bandera: '🇧🇴', nombre: 'Bolivia' },
+  { codigo: '56',   bandera: '🇨🇱', nombre: 'Chile' },
+  { codigo: '57',   bandera: '🇨🇴', nombre: 'Colombia' },
+  { codigo: '506',  bandera: '🇨🇷', nombre: 'Costa Rica' },
+  { codigo: '53',   bandera: '🇨🇺', nombre: 'Cuba' },
+  { codigo: '593',  bandera: '🇪🇨', nombre: 'Ecuador' },
+  { codigo: '503',  bandera: '🇸🇻', nombre: 'El Salvador' },
+  { codigo: '502',  bandera: '🇬🇹', nombre: 'Guatemala' },
+  { codigo: '504',  bandera: '🇭🇳', nombre: 'Honduras' },
+  { codigo: '52',   bandera: '🇲🇽', nombre: 'México' },
+  { codigo: '505',  bandera: '🇳🇮', nombre: 'Nicaragua' },
+  { codigo: '507',  bandera: '🇵🇦', nombre: 'Panamá' },
+  { codigo: '595',  bandera: '🇵🇾', nombre: 'Paraguay' },
+  { codigo: '51',   bandera: '🇵🇪', nombre: 'Perú' },
+  { codigo: '1787', bandera: '🇵🇷', nombre: 'Puerto Rico' },
+  { codigo: '1809', bandera: '🇩🇴', nombre: 'Rep. Dominicana' },
+  { codigo: '598',  bandera: '🇺🇾', nombre: 'Uruguay' },
+  { codigo: '58',   bandera: '🇻🇪', nombre: 'Venezuela' },
 ]
 
-// Limpia el número y genera variantes para búsqueda flexible
 const normalizarWA = (numero: string) => numero.replace(/\D/g, '')
-
-const variantesWA = (prefijo: string, numero: string) => {
-  const n = normalizarWA(numero)
-  const conPrefijo = prefijo + n
-  const set = new Set([
-    n,
-    conPrefijo,
-    prefijo + '9' + n,  // Argentina tiene 9 móvil
-    n.replace(/^0+/, ''),
-  ])
-  return Array.from(set).filter(v => v.length > 5)
-}
 
 export default function Reserva({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const [negocio, setNegocio] = useState(null)
-  const [servicios, setServicios] = useState([])
-  const [empleados, setEmpleados] = useState([])
+  const [negocio, setNegocio] = useState<any>(null)
+  const [servicios, setServicios] = useState<any[]>([])
+  const [empleados, setEmpleados] = useState<any[]>([])
   const [paso, setPaso] = useState(1)
-  const [seleccion, setSeleccion] = useState({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' })
-  const [prefijoPais, setPrefijoPais] = useState(PAISES[0]) // Argentina por defecto
+  const [seleccion, setSeleccion] = useState<any>({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' })
+  const [prefijoPais, setPrefijoPais] = useState(PAISES[0])
   const [prefijoCancelar, setPrefijoCancelar] = useState(PAISES[0])
   const [loading, setLoading] = useState(true)
   const [confirmado, setConfirmado] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  const [vistaGaleria, setVistaGaleria] = useState(null)
-  const [turnoConfirmadoId, setTurnoConfirmadoId] = useState(null)
+  const [vistaGaleria, setVistaGaleria] = useState<string | null>(null)
 
   const [modoCancelar, setModoCancelar] = useState(false)
   const [waCancelar, setWaCancelar] = useState('')
-  const [turnosCancelables, setTurnosCancelables] = useState([])
+  const [turnosCancelables, setTurnosCancelables] = useState<any[]>([])
   const [buscando, setBuscando] = useState(false)
   const [cancelado, setCancelado] = useState(false)
 
   useEffect(() => {
     cargarNegocio()
-    // Inyectar fuente Plus Jakarta Sans
     const link = document.createElement('link')
     link.rel = 'stylesheet'
     link.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap'
@@ -94,21 +78,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const buscarTurnos = async () => {
     if (!waCancelar) return
     setBuscando(true)
-    const variantes = variantesWA(prefijoCancelar.codigo, waCancelar)
+    // Buscar por número exacto con prefijo
+    const waExacto = prefijoCancelar.codigo + normalizarWA(waCancelar)
+    const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waExacto).single()
 
-    // Buscar cliente con cualquier variante del número
-    let clienteId = null
-    for (const v of variantes) {
-      const { data: cliente } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', v).single()
-      if (cliente) { clienteId = cliente.id; break }
-    }
-
-    if (clienteId) {
+    if (cliente) {
       const { data: turnos } = await supabase
         .from('turnos')
         .select('*, servicios(*)')
         .eq('negocio_id', negocio.id)
-        .eq('cliente_id', clienteId)
+        .eq('cliente_id', cliente.id)
         .in('estado', ['pendiente', 'confirmado'])
         .gte('fecha_hora', new Date().toISOString())
         .order('fecha_hora', { ascending: true })
@@ -119,27 +98,27 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     setBuscando(false)
   }
 
-  const cancelarTurno = async (id) => {
+  const cancelarTurno = async (id: string) => {
     await supabase.from('turnos').update({ estado: 'cancelado' }).eq('id', id)
     setCancelado(true)
-    setTurnosCancelables(prev => prev.filter(t => t.id !== id))
+    setTurnosCancelables(prev => prev.filter((t: any) => t.id !== id))
   }
 
   const confirmarTurno = async () => {
     setGuardando(true)
     const waCompleto = prefijoPais.codigo + normalizarWA(seleccion.whatsapp)
     let clienteId = null
-    // Buscar con variantes también al confirmar
-    const variantes = variantesWA(prefijoPais.codigo, seleccion.whatsapp)
-    for (const v of variantes) {
-      const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', v).single()
-      if (clienteExiste) { clienteId = clienteExiste.id; break }
-    }
-    if (!clienteId) {
+
+    // Buscar por número exacto solamente
+    const { data: clienteExiste } = await supabase.from('clientes').select('id').eq('negocio_id', negocio.id).eq('whatsapp', waCompleto).single()
+    if (clienteExiste) {
+      clienteId = clienteExiste.id
+    } else {
       const { data: nuevoCliente } = await supabase.from('clientes').insert([{ negocio_id: negocio.id, nombre: seleccion.nombre, whatsapp: waCompleto }]).select().single()
       clienteId = nuevoCliente?.id
     }
-    const { data: turno } = await supabase.from('turnos').insert([{
+
+    await supabase.from('turnos').insert([{
       negocio_id: negocio.id,
       cliente_id: clienteId,
       empleado_id: seleccion.empleado?.id || null,
@@ -148,9 +127,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       forma_pago: seleccion.pago,
       monto: seleccion.servicio?.precio || 0,
       estado: 'pendiente'
-    }]).select().single()
-
-    if (turno) setTurnoConfirmadoId(turno.id)
+    }])
 
     if (negocio.whatsapp_notif) {
       const fecha = new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -161,7 +138,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         'Fecha: ' + fecha + '%0A' +
         'Hora: ' + seleccion.hora + '%0A' +
         'Pago: ' + seleccion.pago + '%0A' +
-        'WhatsApp: ' + seleccion.whatsapp
+        'WhatsApp: ' + waCompleto
       window.open('https://wa.me/549' + negocio.whatsapp_notif + '?text=' + mensaje, '_blank')
     }
 
@@ -170,7 +147,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   }
 
   const generarHoras = () => {
-    const horas = []
+    const horas: string[] = []
     const intervalo = negocio?.intervalo_turnos || 30
     const inicio = negocio?.horario_apertura ? parseInt(negocio.horario_apertura.split(':')[0]) * 60 + parseInt(negocio.horario_apertura.split(':')[1]) : 9 * 60
     const fin = negocio?.horario_cierre ? parseInt(negocio.horario_cierre.split(':')[0]) * 60 + parseInt(negocio.horario_cierre.split(':')[1]) : 18 * 60
@@ -182,7 +159,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     return horas
   }
 
-  const esDiaDisponible = (fechaStr) => {
+  const esDiaDisponible = (fechaStr: string) => {
     if (!negocio?.dias_atencion || negocio.dias_atencion.length === 0) return true
     const dia = new Date(fechaStr + 'T12:00').getDay().toString()
     return negocio.dias_atencion.includes(dia)
@@ -195,7 +172,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const esPremium = negocio?.plan === 'premium'
   const fechaMin = new Date().toISOString().split('T')[0]
 
-  // Paleta cálida según tema
   const bgColor = tema === 'light' ? '#faf9f7' : '#12111a'
   const bgCard = tema === 'light' ? '#ffffff' : '#1c1a26'
   const bgSubtle = tema === 'light' ? '#f3f1ee' : '#221f2e'
@@ -204,16 +180,15 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const borderColor = tema === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)'
   const shadowCard = tema === 'light' ? '0 2px 12px rgba(0,0,0,0.06)' : '0 2px 16px rgba(0,0,0,0.3)'
 
-  // Color con opacidad para fondos
-  const colorAlpha = (op) => {
-    const hex = color.replace('#','')
-    const r = parseInt(hex.slice(0,2),16)
-    const g = parseInt(hex.slice(2,4),16)
-    const b = parseInt(hex.slice(4,6),16)
+  const colorAlpha = (op: number) => {
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
     return 'rgba(' + r + ',' + g + ',' + b + ',' + op + ')'
   }
 
-  const estiloBotonPrimario = {
+  const estiloBotonPrimario: React.CSSProperties = {
     background: color,
     color: '#fff',
     border: 'none',
@@ -227,7 +202,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     letterSpacing: '-0.01em',
   }
 
-  const estiloInput = {
+  const estiloInput: React.CSSProperties = {
     width: '100%',
     background: bgCard,
     border: '1.5px solid ' + borderColor,
@@ -237,9 +212,23 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     fontSize: '1rem',
     outline: 'none',
     colorScheme: tema === 'dark' ? 'dark' : 'light',
-    boxSizing: 'border-box' as any,
+    boxSizing: 'border-box',
     fontFamily: fuente,
     transition: 'border-color 0.2s',
+  }
+
+  const estiloSelect: React.CSSProperties = {
+    background: bgCard,
+    border: '1.5px solid ' + borderColor,
+    borderRadius: '12px',
+    padding: '0 0.75rem',
+    color: textColor,
+    fontSize: '0.875rem',
+    fontFamily: fuente,
+    outline: 'none',
+    cursor: 'pointer',
+    flexShrink: 0,
+    height: '50px',
   }
 
   if (loading) return (
@@ -274,10 +263,9 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem' }}>
-          <select
-            value={prefijoCancelar.codigo}
+          <select value={prefijoCancelar.codigo}
             onChange={e => setPrefijoCancelar(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
-            style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '12px', padding: '0 0.75rem', color: textColor, fontSize: '0.875rem', fontFamily: fuente, outline: 'none', cursor: 'pointer', flexShrink: 0 }}>
+            style={estiloSelect}>
             {PAISES.map(p => (
               <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>
             ))}
@@ -347,10 +335,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         <p style={{ color: textSub, marginBottom: '1.75rem', fontSize: '0.95rem', animation: 'slideUp 0.4s 0.25s both' }}>
           {negocio.mensaje_confirmacion || 'Tu turno quedó reservado. ¡Te esperamos!'}
         </p>
-
-        {/* Tarjeta resumen */}
         <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '20px', padding: '1.5rem', textAlign: 'left', marginBottom: '1.5rem', boxShadow: shadowCard, animation: 'slideUp 0.4s 0.35s both' }}>
-          {/* Franja de color arriba */}
           <div style={{ height: '4px', background: color, borderRadius: '9999px', marginBottom: '1.25rem' }} />
           {[
             { icon: '✂️', label: 'Servicio', value: seleccion.servicio?.nombre },
@@ -366,7 +351,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             </div>
           ))}
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', animation: 'slideUp 0.4s 0.45s both' }}>
           <button onClick={() => { setConfirmado(false); setPaso(1); setSeleccion({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' }) }}
             style={{ ...estiloBotonPrimario }}>
@@ -394,7 +378,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         input:focus { border-color: ${color} !important; }
       `}</style>
 
-      {/* Lightbox galería */}
       {vistaGaleria && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           onClick={() => setVistaGaleria(null)}>
@@ -403,14 +386,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       )}
 
-      {/* Barra de color top */}
       <div style={{ height: '3px', background: color, width: '100%' }} />
 
-      {/* Header del negocio */}
       <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, boxShadow: tema === 'light' ? '0 1px 8px rgba(0,0,0,0.04)' : 'none', width: '100%' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '1.5rem 1rem 1.25rem' }}>
-
-          {/* Logo + nombre */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
             {negocio.logo_url ? (
               <img src={negocio.logo_url} alt="Logo"
@@ -433,7 +412,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             </div>
           </div>
 
-          {/* Info rápida con chips */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: negocio.instagram || negocio.facebook || negocio.tiktok || negocio.google_maps ? '0.875rem' : '0' }}>
             {negocio.direccion && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>
@@ -447,12 +425,11 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             )}
             {negocio.dias_atencion && negocio.dias_atencion.length > 0 && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 10px', borderRadius: '9999px' }}>
-                📅 {negocio.dias_atencion.sort().map(d => DIAS_NOMBRES[parseInt(d)]).join(' · ')}
+                📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}
               </span>
             )}
           </div>
 
-          {/* Redes sociales */}
           {(negocio.instagram || negocio.facebook || negocio.tiktok || negocio.google_maps) && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {negocio.instagram && (
@@ -474,37 +451,24 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             </div>
           )}
 
-          {/* Galería Premium */}
           {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '2px' }}>
-              {negocio.galeria.map((url, i) => (
+              {negocio.galeria.map((url: string, i: number) => (
                 <img key={i} src={url} alt={'Foto ' + (i+1)} onClick={() => setVistaGaleria(url)}
-                  style={{ width: '88px', height: '88px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '1.5px solid ' + borderColor, transition: 'transform 0.15s', }} />
+                  style={{ width: '88px', height: '88px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '1.5px solid ' + borderColor }} />
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Contenido principal */}
       <div style={{ maxWidth: '480px', width: '100%', margin: '0 auto', padding: '1.75rem 1rem 3rem' }}>
 
-        {/* Stepper mejorado */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', gap: 0 }}>
           {[1,2,3,4].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                <div style={{
-                  width: '32px', height: '32px', borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: paso > p ? '0.875rem' : '0.8rem',
-                  fontWeight: '700',
-                  background: paso > p ? color : paso === p ? color : bgSubtle,
-                  color: paso >= p ? '#fff' : textSub,
-                  border: paso === p ? '3px solid ' + color : paso > p ? '3px solid ' + color : '2px solid ' + borderColor,
-                  transition: 'all 0.2s',
-                  boxShadow: paso === p ? '0 0 0 4px ' + colorAlpha(0.15) : 'none',
-                }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: paso > p ? '0.875rem' : '0.8rem', fontWeight: '700', background: paso > p ? color : paso === p ? color : bgSubtle, color: paso >= p ? '#fff' : textSub, border: paso === p ? '3px solid ' + color : paso > p ? '3px solid ' + color : '2px solid ' + borderColor, transition: 'all 0.2s', boxShadow: paso === p ? '0 0 0 4px ' + colorAlpha(0.15) : 'none' }}>
                   {paso > p ? '✓' : p}
                 </div>
                 <span style={{ fontSize: '0.62rem', fontWeight: paso === p ? '700' : '500', color: paso >= p ? color : textSub, whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>
@@ -518,27 +482,23 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           ))}
         </div>
 
-        {/* ── PASO 1: Servicio ── */}
         {paso === 1 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Qué servicio necesitás?</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Elegí el servicio que querés reservar</p>
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {servicios.map((s, i) => (
+              {servicios.map((s) => (
                 <button key={s.id} className="btn-servicio" onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
                   style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                     <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.8rem', flexShrink: 0, letterSpacing: '-0.02em' }}>
-                      {s.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}
+                      {s.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
                     </div>
                     <div>
                       <div style={{ fontWeight: '700', color: textColor, fontSize: '0.95rem', marginBottom: '2px' }}>{s.nombre}</div>
-                      <div style={{ color: textSub, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>⏱ {s.duracion_minutos} min</span>
-                      </div>
+                      <div style={{ color: textSub, fontSize: '0.8rem' }}>⏱ {s.duracion_minutos} min</div>
                     </div>
                   </div>
                   <div style={{ fontWeight: '800', color, fontSize: '1.05rem', flexShrink: 0, marginLeft: '0.5rem' }}>
@@ -547,7 +507,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 </button>
               ))}
             </div>
-
             <button onClick={() => setModoCancelar(true)}
               style={{ width: '100%', marginTop: '1.5rem', background: 'transparent', color: textSub, border: '1.5px solid ' + borderColor, borderRadius, padding: '0.75rem', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem', fontFamily: fuente }}>
               Cancelar un turno existente
@@ -555,14 +514,12 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* ── PASO 2: Empleado ── */}
         {paso === 2 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Con quién querés atenderte?</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Podés elegir o dejar que te asignemos el primero disponible</p>
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button className="btn-empleado" onClick={() => { setSeleccion({...seleccion, empleado: null}); setPaso(3) }}
                 style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.875rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
@@ -572,30 +529,26 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   <div style={{ color: textSub, fontSize: '0.8rem' }}>El primero disponible</div>
                 </div>
               </button>
-
               {empleados.map(e => (
                 <button key={e.id} className="btn-empleado" onClick={() => { setSeleccion({...seleccion, empleado: e}); setPaso(3) }}
                   style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.125rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.875rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
                   <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.9rem', flexShrink: 0 }}>
-                    {e.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}
+                    {e.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
                   </div>
                   <div style={{ fontWeight: '700', color: textColor, fontSize: '0.95rem' }}>{e.nombre}</div>
                 </button>
               ))}
             </div>
-
             <button onClick={() => setPaso(1)} style={{ marginTop: '1.25rem', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: fuente }}>← Volver</button>
           </div>
         )}
 
-        {/* ── PASO 3: Fecha y hora ── */}
         {paso === 3 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>¿Cuándo querés el turno?</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Elegí el día y el horario que mejor te quede</p>
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Fecha</label>
@@ -609,34 +562,19 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   }}
                   style={estiloInput} />
               </div>
-
               {seleccion.fecha && (
                 <div>
                   <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Horario disponible</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
                     {generarHoras().map(h => (
                       <button key={h} className="btn-hora" onClick={() => setSeleccion({...seleccion, hora: h})}
-                        style={{
-                          padding: '0.625rem 0.375rem',
-                          borderRadius: '12px',
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          border: '1.5px solid',
-                          background: seleccion.hora === h ? color : bgCard,
-                          color: seleccion.hora === h ? '#fff' : textColor,
-                          borderColor: seleccion.hora === h ? color : borderColor,
-                          transition: 'all 0.15s',
-                          boxShadow: seleccion.hora === h ? '0 2px 8px ' + colorAlpha(0.3) : 'none',
-                          fontFamily: fuente,
-                        }}>
+                        style={{ padding: '0.625rem 0.375rem', borderRadius: '12px', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer', border: '1.5px solid', background: seleccion.hora === h ? color : bgCard, color: seleccion.hora === h ? '#fff' : textColor, borderColor: seleccion.hora === h ? color : borderColor, transition: 'all 0.15s', boxShadow: seleccion.hora === h ? '0 2px 8px ' + colorAlpha(0.3) : 'none', fontFamily: fuente }}>
                         {h}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
-
               {seleccion.fecha && seleccion.hora && (
                 <div style={{ background: colorAlpha(0.08), border: '1.5px solid ' + colorAlpha(0.2), borderRadius: '14px', padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{ fontSize: '1.25rem' }}>📅</span>
@@ -648,26 +586,20 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   </div>
                 </div>
               )}
-
               {seleccion.fecha && seleccion.hora && (
-                <button onClick={() => setPaso(4)} style={{ ...estiloBotonPrimario }}>
-                  Continuar →
-                </button>
+                <button onClick={() => setPaso(4)} style={{ ...estiloBotonPrimario }}>Continuar →</button>
               )}
             </div>
-
             <button onClick={() => setPaso(2)} style={{ marginTop: '1.25rem', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: fuente }}>← Volver</button>
           </div>
         )}
 
-        {/* ── PASO 4: Datos personales ── */}
         {paso === 4 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.375rem', fontWeight: '800', margin: '0 0 0.375rem', color: textColor, letterSpacing: '-0.02em' }}>Tus datos</h2>
               <p style={{ color: textSub, fontSize: '0.875rem', margin: 0 }}>Último paso — completá tus datos para confirmar</p>
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tu nombre</label>
@@ -675,24 +607,21 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   onChange={e => setSeleccion({...seleccion, nombre: e.target.value})}
                   style={estiloInput} />
               </div>
-
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WhatsApp</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <select
-                    value={prefijoPais.codigo}
+                  <select value={prefijoPais.codigo}
                     onChange={e => setPrefijoPais(PAISES.find(p => p.codigo === e.target.value) || PAISES[0])}
-                    style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '12px', padding: '0 0.75rem', color: textColor, fontSize: '0.875rem', fontFamily: fuente, outline: 'none', cursor: 'pointer', flexShrink: 0 }}>
+                    style={estiloSelect}>
                     {PAISES.map(p => (
                       <option key={p.codigo} value={p.codigo}>{p.bandera} +{p.codigo}</option>
                     ))}
                   </select>
                   <input type="tel" placeholder="Número sin prefijo" value={seleccion.whatsapp}
                     onChange={e => setSeleccion({...seleccion, whatsapp: e.target.value})}
-                    style={{ ...estiloInput }} />
+                    style={estiloInput} />
                 </div>
               </div>
-
               <div>
                 <label style={{ color: textSub, fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Forma de pago</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
@@ -702,28 +631,13 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                     { v: 'mercadopago', l: 'Mercado Pago', icon: '📱' }
                   ].map(op => (
                     <button key={op.v} className="btn-pago" onClick={() => setSeleccion({...seleccion, pago: op.v})}
-                      style={{
-                        padding: '0.75rem 0.375rem',
-                        borderRadius: '12px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        border: '1.5px solid',
-                        background: seleccion.pago === op.v ? colorAlpha(0.1) : bgCard,
-                        color: seleccion.pago === op.v ? color : textColor,
-                        borderColor: seleccion.pago === op.v ? color : borderColor,
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                        transition: 'all 0.15s',
-                        fontFamily: fuente,
-                      }}>
+                      style={{ padding: '0.75rem 0.375rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer', border: '1.5px solid', background: seleccion.pago === op.v ? colorAlpha(0.1) : bgCard, color: seleccion.pago === op.v ? color : textColor, borderColor: seleccion.pago === op.v ? color : borderColor, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transition: 'all 0.15s', fontFamily: fuente }}>
                       <span style={{ fontSize: '1.25rem' }}>{op.icon}</span>
                       {op.l}
                     </button>
                   ))}
                 </div>
               </div>
-
-              {/* Resumen del turno */}
               <div style={{ background: bgSubtle, borderRadius: '18px', padding: '1.25rem', border: '1.5px solid ' + borderColor }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: '700', color: textSub, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Resumen de tu turno</div>
                 {[
@@ -743,19 +657,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                   <span style={{ color, fontWeight: '800', fontSize: '1.125rem' }}>${Number(seleccion.servicio?.precio).toLocaleString()}</span>
                 </div>
               </div>
-
               <button onClick={confirmarTurno} disabled={!seleccion.nombre || !seleccion.whatsapp || guardando}
-                style={{ ...estiloBotonPrimario, opacity: (!seleccion.nombre || !seleccion.whatsapp || guardando) ? 0.5 : 1, fontSize: '1rem' }}>
+                style={{ ...estiloBotonPrimario, opacity: (!seleccion.nombre || !seleccion.whatsapp || guardando) ? 0.5 : 1 }}>
                 {guardando ? 'Confirmando...' : '✓ Confirmar turno'}
               </button>
             </div>
-
             <button onClick={() => setPaso(3)} style={{ marginTop: '1.25rem', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: fuente }}>← Volver</button>
           </div>
         )}
       </div>
 
-      {/* Footer */}
       <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid ' + borderColor, width: '100%' }}>
         <p style={{ color: textSub, fontSize: '0.75rem', margin: 0 }}>
           Reservas gestionadas por <span style={{ color, fontWeight: '700' }}>Turnify</span>
