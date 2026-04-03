@@ -456,9 +456,13 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 <button key={s.id} className="btn-servicio" onClick={() => { setSeleccion({...seleccion, servicio: s}); setPaso(2) }}
                   style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.85rem', flexShrink: 0 }}>
-                      {s.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
-                    </div>
+                    {s.imagen_url ? (
+                      <img src={s.imagen_url} alt={s.nombre} style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + borderColor }} />
+                    ) : (
+                      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.2), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '0.85rem', flexShrink: 0 }}>
+                        {s.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
+                      </div>
+                    )}
                     <div>
                       <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem', marginBottom: '2px' }}>{s.nombre}</div>
                       <div style={{ color: textSub, fontSize: '0.8rem' }}>⏱ {s.duracion_minutos} min</div>
