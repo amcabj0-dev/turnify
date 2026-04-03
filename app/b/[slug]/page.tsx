@@ -282,7 +282,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '20px', padding: '1.5rem', textAlign: 'left', marginBottom: '1.5rem', boxShadow: shadowCard, animation: 'slideUp 0.4s 0.35s both' }}>
           <div style={{ height: '4px', background: color, borderRadius: '9999px', marginBottom: '1.25rem' }} />
           {[
-            { icon: '✂️', label: 'Servicio', value: seleccion.servicio?.nombre },
+            { icon: '📋', label: 'Servicio', value: seleccion.servicio?.nombre },
             seleccion.empleado ? { icon: '👤', label: 'Con', value: seleccion.empleado?.nombre } : null,
             { icon: '📅', label: 'Fecha', value: new Date(seleccion.fecha + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }) },
             { icon: '🕐', label: 'Hora', value: seleccion.hora + ' hs' },
