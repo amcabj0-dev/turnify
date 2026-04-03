@@ -3,6 +3,24 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
+const TEMAS_DASHBOARD = [
+  { v: 'oscuro', l: 'Oscuro', desc: 'Azul noche', bg: '#090d1a', text: '#4f8ef7' },
+  { v: 'gris', l: 'Gris', desc: 'Negro carbón', bg: '#1a1a1a', text: '#ffffff' },
+  { v: 'blanco', l: 'Blanco', desc: 'Fondo blanco', bg: '#ffffff', text: '#1a1a2e' },
+  { v: 'blanco-gris', l: 'Gris claro', desc: 'Fondo suave', bg: '#f0f2f5', text: '#1a1a2e' },
+]
+
+const FRASES = [
+  'Cada turno es una oportunidad de dejar una huella.',
+  'Tu trabajo transforma personas, no solo apariencias.',
+  'Los grandes negocios se construyen cliente a cliente.',
+  'La constancia es el secreto de los mejores.',
+  'Cada día es una nueva chance de superar el anterior.',
+  'Tu dedicación es lo que te diferencia.',
+  'El éxito es la suma de pequeños esfuerzos repetidos.',
+  'Quien cuida a sus clientes, construye un negocio para siempre.',
+]
+
 export default function Configuracion() {
   const [negocio, setNegocio] = useState(null)
   const [form, setForm] = useState({
@@ -13,6 +31,7 @@ export default function Configuracion() {
     instagram: '', facebook: '', tiktok: '', google_maps: '',
     dias_atencion: ['1','2','3','4','5'], intervalo_turnos: 30, turnos_simultaneos: 1,
   })
+  const [temaDashboard, setTemaDashboard] = useState('oscuro')
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
   const [subiendoLogo, setSubiendoLogo] = useState(false)
@@ -65,10 +84,18 @@ export default function Configuracion() {
       setLogoUrl(negocioGuardado.logo_url || '')
       setPortadaUrl(negocioGuardado.foto_portada || '')
       setGaleriaUrls(negocioGuardado.galeria || [])
+      const temaGuardado = localStorage.getItem('dashboard_tema') || 'oscuro'
+      setTemaDashboard(temaGuardado)
     } else {
       window.location.href = '/login'
     }
   }, [])
+
+  const cambiarTemaDashboard = (tema: string) => {
+    setTemaDashboard(tema)
+    localStorage.setItem('dashboard_tema', tema)
+    document.documentElement.setAttribute('data-theme', tema)
+  }
 
   const toggleDia = (dia) => {
     const dias = form.dias_atencion.includes(dia)
@@ -185,6 +212,7 @@ export default function Configuracion() {
   const coloresPreset = ['#c8f135','#3b82f6','#f43f5e','#f97316','#a855f7','#06b6d4','#10b981','#f59e0b']
   const esPremium = negocio?.plan === 'premium'
   const borderRadius = form.forma_botones === 'pill' ? '9999px' : form.forma_botones === 'redondeado' ? '12px' : '4px'
+  const fraseDelDia = FRASES[new Date().getDay() % FRASES.length]
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -229,7 +257,7 @@ export default function Configuracion() {
           {/* FOTO DE PORTADA */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-1">🌅 Foto de portada</h3>
-            <p className="text-gray-500 text-sm mb-4">Aparece como banner en tu página pública. Usá una foto horizontal de buena calidad.</p>
+            <p className="text-gray-500 text-sm mb-4">Aparece como banner en tu página pública.</p>
             {portadaUrl ? (
               <div className="relative rounded-xl overflow-hidden mb-3" style={{ height: '160px' }}>
                 <img src={portadaUrl} alt="Portada" className="w-full h-full object-cover" />
@@ -372,6 +400,35 @@ export default function Configuracion() {
             </div>
           </div>
 
+          {/* TEMA DASHBOARD */}
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
+            <h3 className="font-bold mb-1">🖥️ Tema del dashboard</h3>
+            <p className="text-gray-500 text-sm mb-4">Cambia la apariencia de tu panel de gestión</p>
+            <div className="grid grid-cols-2 gap-3">
+              {TEMAS_DASHBOARD.map(t => (
+                <button key={t.v} type="button" onClick={() => cambiarTemaDashboard(t.v)}
+                  className="border rounded-xl p-3 text-left transition-all"
+                  style={{ background: t.bg, borderColor: temaDashboard === t.v ? form.color : 'rgba(255,255,255,0.1)', borderWidth: temaDashboard === t.v ? '2px' : '1px' }}>
+                  <div className="font-bold text-sm mb-1" style={{ color: t.text }}>{t.l}</div>
+                  <div className="text-xs" style={{ color: t.text, opacity: 0.6 }}>{t.desc}</div>
+                  {temaDashboard === t.v && (
+                    <div className="text-xs font-bold mt-2" style={{ color: form.color }}>✓ Activo</div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* FRASE INSPIRADORA */}
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
+            <h3 className="font-bold mb-1">💡 Frase del día</h3>
+            <p className="text-gray-500 text-sm mb-4">Aparece en tu dashboard cada día</p>
+            <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4">
+              <p className="text-gray-300 text-sm italic">{fraseDelDia}</p>
+            </div>
+            <p className="text-gray-600 text-xs mt-2">Se rota automáticamente cada día</p>
+          </div>
+
           {/* HORARIOS */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold mb-4">🕐 Horarios y días</h3>
@@ -433,7 +490,7 @@ export default function Configuracion() {
           </div>
 
           {/* GALERÍA */}
-          <div className={`bg-[#1a1a1a] border rounded-2xl p-6 ${esPremium ? 'border-white/10' : 'border-white/05 opacity-60'}`}>
+          <div className={'bg-[#1a1a1a] border rounded-2xl p-6 ' + (esPremium ? 'border-white/10' : 'border-white/05 opacity-60')}>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold">📸 Galería de fotos</h3>
               {!esPremium && <span className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-1 rounded-full font-bold">⭐ Premium</span>}
