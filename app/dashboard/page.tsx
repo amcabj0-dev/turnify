@@ -3,6 +3,17 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
+const FRASES = [
+  'Cada turno es una oportunidad de dejar una huella.',
+  'Tu trabajo transforma personas, no solo apariencias.',
+  'Los grandes negocios se construyen cliente a cliente.',
+  'La constancia es el secreto de los mejores.',
+  'Cada dia es una nueva chance de superar el anterior.',
+  'Tu dedicacion es lo que te diferencia.',
+  'El exito es la suma de pequeños esfuerzos repetidos.',
+  'Quien cuida a sus clientes construye un negocio para siempre.',
+]
+
 export default function Dashboard() {
   const [negocio, setNegocio] = useState<any>(null)
   const [turnos, setTurnos] = useState<any[]>([])
@@ -12,10 +23,14 @@ export default function Dashboard() {
   const [tab, setTab] = useState('inicio')
   const turnosRef = useRef<any>(null)
 
+  const frase = FRASES[new Date().getDay() % FRASES.length]
+
   useEffect(() => {
     const n = JSON.parse(localStorage.getItem('negocio') || '{}')
     if (n.id) { setNegocio(n); cargarTurnos(n.id) }
     else window.location.href = '/login'
+    const tema = localStorage.getItem('dashboard_tema') || 'oscuro'
+    document.documentElement.setAttribute('data-theme', tema)
   }, [])
 
   const cargarTurnos = async (id: string) => {
@@ -83,7 +98,7 @@ export default function Dashboard() {
   const turnosPendientes = turnos.filter(t => t.estado === 'pendiente')
   const ingresosMes = turnos.filter(t => t.pagado).reduce((acc, t) => acc + Number(t.monto), 0)
 
-  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
+  const dias = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab']
   const turnosPorDia = dias.map((d, i) => ({
     dia: d,
     count: turnos.filter(t => new Date(t.fecha_hora).getDay() === i).length
@@ -108,7 +123,7 @@ export default function Dashboard() {
   }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#090d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
         Cargando...
       </div>
@@ -120,31 +135,32 @@ export default function Dashboard() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
-        .nav-btn { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; color:#6b7fa3; font-size:9px; font-family:'DM Sans',sans-serif; border:none; background:none; padding:0 8px; text-decoration:none; }
+        .nav-btn { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; color:var(--text-secondary); font-size:9px; font-family:'DM Sans',sans-serif; border:none; background:none; padding:0 8px; text-decoration:none; }
         .nav-btn.active { color:#4f8ef7; }
         .nav-btn svg { width:20px; height:20px; }
-        .stat-card-scroll { min-width:130px; background:#0f1628; border:1px solid rgba(79,142,247,0.15); border-radius:12px; padding:13px; flex-shrink:0; cursor:pointer; transition:border-color 0.2s; }
+        .stat-card-scroll { min-width:130px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:13px; flex-shrink:0; cursor:pointer; transition:border-color 0.2s; }
         .stat-card-scroll:hover { border-color:rgba(79,142,247,0.4); }
-        .turno-row { padding:12px; margin-bottom:8px; background:#0a0f1e; border:1px solid rgba(79,142,247,0.1); border-radius:10px; }
-        .filter-tab { padding:5px 10px; border-radius:8px; font-size:11px; font-weight:500; color:#6b7fa3; cursor:pointer; border:none; background:none; font-family:'DM Sans',sans-serif; }
+        .turno-row { padding:12px; margin-bottom:8px; background:var(--bg-card); border:1px solid var(--border-card); border-radius:10px; }
+        .filter-tab { padding:5px 10px; border-radius:8px; font-size:11px; font-weight:500; color:var(--text-secondary); cursor:pointer; border:none; background:none; font-family:'DM Sans',sans-serif; }
         .filter-tab.active { background:rgba(79,142,247,0.15); color:#4f8ef7; }
         .action-btn { padding:5px 10px; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; border:none; font-family:'DM Sans',sans-serif; transition:opacity 0.2s; }
         .action-btn:hover { opacity:0.8; }
-        .menu-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; background:#0a0f1e; border:1px solid rgba(79,142,247,0.1); cursor:pointer; transition:border-color 0.2s; text-decoration:none; }
+        .menu-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border-card); cursor:pointer; transition:border-color 0.2s; text-decoration:none; }
         .menu-item:hover { border-color:rgba(79,142,247,0.3); }
         .badge { font-size:10px; padding:2px 7px; border-radius:20px; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#090d1a', color: '#e8edf8', fontFamily: "'DM Sans', sans-serif", paddingBottom: '80px' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: "'DM Sans', sans-serif", paddingBottom: '80px' }}>
 
-        <div style={{ background: '#0f1628', borderBottom: '1px solid rgba(79,142,247,0.15)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
+        {/* Header */}
+        <div style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--border-color)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
           <div style={{ fontSize: '20px', fontWeight: 800, fontFamily: "'Syne', sans-serif", background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Turnify</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '20px', background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)', fontWeight: 600 }}>
+            <div style={{ fontSize: '10px', padding: '3px 10px', borderRadius: '20px', background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)', fontWeight: 600 }}>
               {(negocio?.plan || 'basico').toUpperCase()}
             </div>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#4f8ef7,#7c5af7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#4f8ef7,#7c5af7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', cursor: 'pointer', color: '#fff' }}
               onClick={cerrarSesion}>
               {negocio?.nombre?.[0]?.toUpperCase() || 'N'}
             </div>
@@ -153,14 +169,19 @@ export default function Dashboard() {
 
         <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
+          {/* Saludo + frase */}
           <div>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '17px', fontWeight: 800 }}>Buen día 👋</h2>
-            <p style={{ color: '#6b7fa3', fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '17px', fontWeight: 800, color: 'var(--text-primary)' }}>Buen dia 👋</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00e5a0', display: 'inline-block', animation: 'pulse 2s infinite' }} />
               {negocio?.nombre} · {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
+            <div style={{ marginTop: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '10px 12px', borderLeft: '3px solid #4f8ef7' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0 }}>{'💡 ' + frase}</p>
+            </div>
           </div>
 
+          {/* Stats */}
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
             {[
               { label: 'Turnos hoy', value: turnosHoy.length, color: '#4f8ef7', bg: 'rgba(79,142,247,0.12)', filtro: 'hoy', icon: '📅' },
@@ -169,46 +190,49 @@ export default function Dashboard() {
               { label: 'Cobrado', value: '$' + ingresosMes.toLocaleString(), color: '#00e5a0', bg: 'rgba(0,229,160,0.12)', filtro: 'pagados', icon: '💰' },
             ].map((s, i) => (
               <div key={i} className="stat-card-scroll" onClick={() => scrollATurnos(s.filtro)}
-                style={{ borderColor: filtro === s.filtro ? s.color + '60' : 'rgba(79,142,247,0.15)' }}>
+                style={{ borderColor: filtro === s.filtro ? s.color + '60' : 'var(--border-color)' }}>
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', marginBottom: '8px' }}>{s.icon}</div>
-                <div style={{ fontSize: '10px', color: '#6b7fa3' }}>{s.label}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{s.label}</div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: '22px', fontWeight: 800, color: s.color, lineHeight: 1.1, marginTop: '2px' }}>{s.value}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Link */}
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
               Tu link de reservas
               <span className="badge" style={{ background: 'rgba(0,229,160,0.1)', color: '#00e5a0', border: '1px solid rgba(0,229,160,0.2)' }}>activo</span>
             </div>
             <button onClick={copiarLink} style={{ width: '100%', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', color: '#000', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-              {copiado ? '✅ Copiado!' : '📋 Copiar link'}
+              {copiado ? 'Copiado!' : 'Copiar link'}
             </button>
-            <div style={{ fontSize: '11px', color: '#6b7fa3', textAlign: 'center', marginTop: '8px' }}>/b/{negocio?.slug}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '8px' }}>/b/{negocio?.slug}</div>
           </div>
 
-          <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px' }}>Gestión</div>
+          {/* Gestion */}
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', color: 'var(--text-primary)' }}>Gestion</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {[
                 { icon: '🗂️', label: 'Servicios', href: '/dashboard/servicios' },
                 { icon: '👥', label: 'Empleados', href: '/dashboard/empleados' },
                 { icon: '👤', label: 'Clientes', href: '/dashboard/clientes' },
-                { icon: '⚙️', label: 'Configuración', href: '/dashboard/configuracion' },
+                { icon: '⚙️', label: 'Configuracion', href: '/dashboard/configuracion' },
               ].map((item, i) => (
                 <Link key={i} href={item.href} className="menu-item">
                   <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#e8edf8' }}>{item.label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.label}</span>
                 </Link>
               ))}
             </div>
           </div>
 
-          <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              Turnos por día
-              <span className="badge" style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)' }}>Histórico</span>
+          {/* Grafico */}
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
+              Turnos por dia
+              <span className="badge" style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)' }}>Historico</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '70px' }}>
               {turnosPorDia.map((d, i) => {
@@ -216,24 +240,25 @@ export default function Dashboard() {
                 const h = maxDia > 0 ? Math.max((d.count / maxDia) * 55, d.count > 0 ? 8 : 3) : 3
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
-                    <div style={{ fontSize: '9px', color: '#6b7fa3', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{d.count > 0 ? d.count : ''}</div>
+                    <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{d.count > 0 ? d.count : ''}</div>
                     <div style={{ width: '100%', height: h + 'px', borderRadius: '3px 3px 0 0', background: d.count > 0 ? colors[i] : 'rgba(255,255,255,0.05)' }} />
-                    <div style={{ fontSize: '9px', color: '#6b7fa3' }}>{d.dia}</div>
+                    <div style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>{d.dia}</div>
                   </div>
                 )
               })}
             </div>
           </div>
 
+          {/* Top servicios */}
           {topServicios.length > 0 && (
-            <div style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                Servicios más pedidos
-                <span className="badge" style={{ background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.3)' }}>Top {topServicios.length}</span>
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
+                Servicios mas pedidos
+                <span className="badge" style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)' }}>Top {topServicios.length}</span>
               </div>
               {topServicios.map(([nombre, count], i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ fontSize: '11px', color: '#6b7fa3', minWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', minWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</div>
                   <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: '4px', width: Math.round((count / maxServicio) * 100) + '%', background: svcColors[i] }} />
                   </div>
@@ -243,20 +268,21 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div ref={turnosRef} style={{ background: '#0f1628', border: '1px solid rgba(79,142,247,0.15)', borderRadius: '12px', padding: '14px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Turnos */}
+          <div ref={turnosRef} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
               Turnos
-              <div style={{ display: 'flex', gap: '2px', background: '#090d1a', borderRadius: '8px', padding: '3px' }}>
-                {[{ v: 'hoy', l: 'Hoy' }, { v: 'manana', l: 'Mañana' }, { v: 'semana', l: 'Semana' }, { v: 'todos', l: 'Todos' }].map(f => (
+              <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-primary)', borderRadius: '8px', padding: '3px' }}>
+                {[{ v: 'hoy', l: 'Hoy' }, { v: 'manana', l: 'Manana' }, { v: 'semana', l: 'Semana' }, { v: 'todos', l: 'Todos' }].map(f => (
                   <button key={f.v} className={'filter-tab' + (filtro === f.v ? ' active' : '')} onClick={() => setFiltro(f.v)}>{f.l}</button>
                 ))}
               </div>
             </div>
 
             {turnosFiltrados.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7fa3', fontSize: '13px' }}>
+              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
                 <div style={{ fontSize: '32px', marginBottom: '8px' }}>📅</div>
-                No hay turnos para este período
+                No hay turnos para este periodo
               </div>
             ) : (
               turnosFiltrados.map((turno) => {
@@ -268,14 +294,14 @@ export default function Dashboard() {
                         {turno.clientes?.nombre?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600 }}>{turno.clientes?.nombre || 'Sin nombre'}</div>
-                        <div style={{ fontSize: '11px', color: '#6b7fa3', marginTop: '1px' }}>{turno.servicios?.nombre || 'Sin servicio'}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{turno.clientes?.nombre || 'Sin nombre'}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>{turno.servicios?.nombre || 'Sin servicio'}</div>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: '14px', color: '#00d4ff', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>
                           {new Date(turno.fecha_hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div style={{ fontSize: '10px', color: '#6b7fa3' }}>
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
                           {new Date(turno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
                         </div>
                       </div>
@@ -287,7 +313,7 @@ export default function Dashboard() {
                       </span>
                       <button className="action-btn" onClick={() => marcarPagado(turno.id, turno.pagado)}
                         style={{ background: turno.pagado ? 'rgba(0,229,160,0.12)' : 'rgba(255,107,107,0.12)', color: turno.pagado ? '#00e5a0' : '#ff6b6b', border: '1px solid ' + (turno.pagado ? 'rgba(0,229,160,0.25)' : 'rgba(255,107,107,0.25)') }}>
-                        {turno.pagado ? '✓ Pagado' : '✗ Sin pagar'}
+                        {turno.pagado ? 'Pagado' : 'Sin pagar'}
                       </button>
                       <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
                         {turno.estado === 'pendiente' && (
@@ -318,7 +344,8 @@ export default function Dashboard() {
 
         </div>
 
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0f1628', borderTop: '1px solid rgba(79,142,247,0.15)', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0 14px', zIndex: 100 }}>
+        {/* Bottom nav */}
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--nav-bg)', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0 14px', zIndex: 100 }}>
           <button className={'nav-btn' + (tab === 'inicio' ? ' active' : '')} onClick={() => setTab('inicio')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             Inicio
@@ -327,12 +354,10 @@ export default function Dashboard() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Turnos
           </button>
-          <a href={'/b/' + negocio?.slug} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-            <button className="nav-btn">
-              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-8px' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              </div>
-            </button>
+          <a href={negocio ? '/b/' + negocio.slug : '#'} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '-8px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </div>
           </a>
           <Link href="/dashboard/empleados" style={{ textDecoration: 'none' }}>
             <button className="nav-btn">

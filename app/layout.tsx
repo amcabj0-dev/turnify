@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Turnify - Turnos online para tu negocio",
-  description: "Gestión de turnos online para peluquerías, estéticas, gimnasios y más. Gratis 30 días.",
+  description: "Gestion de turnos online para peluquerias, esteticas, gimnasios y mas. Gratis 30 dias.",
   manifest: "/manifest.json",
 };
 
@@ -20,9 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="Turnify" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
