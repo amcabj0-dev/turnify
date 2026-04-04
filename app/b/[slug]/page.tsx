@@ -497,12 +497,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               </button>
               {empleados.map(e => (
                 <button key={e.id} className="btn-empleado" onClick={() => { setSeleccion({...seleccion, empleado: e}); setPaso(3) }}
-                  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '1rem', flexShrink: 0 }}>
-                    {e.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
-                  </div>
-                  <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem' }}>{e.nombre}</div>
-                </button>
+  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
+  {e.foto_url ? (
+    <img src={e.foto_url} alt={e.nombre} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + colorAlpha(0.25) }} />
+  ) : (
+    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '1rem', flexShrink: 0 }}>
+      {e.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
+    </div>
+  )}
+  <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem' }}>{e.nombre}</div>
+</button>
               ))}
             </div>
             <button onClick={() => setPaso(1)} style={{ marginTop: '1.25rem', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: fuente }}>← Volver</button>
