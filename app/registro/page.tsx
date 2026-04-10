@@ -33,72 +33,80 @@ export default function Registro() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+    <main className="min-h-screen bg-[#0D1B2A] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-black text-white mb-2">
-            Turn<span className="text-[#c8f135]">ify</span>
-          </h1>
-          <p className="text-gray-400">Creá tu cuenta gratis · 30 días sin cargo</p>
+
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-9 h-9 border border-white/40 flex items-center justify-center">
+              <span style={{fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 400, color: '#fff'}}>S</span>
+            </div>
+            <span style={{fontFamily: 'Georgia, serif', fontSize: '13px', letterSpacing: '6px', fontWeight: 400, color: '#fff'}}>SLOTLY</span>
+          </div>
+          <p style={{fontFamily: 'Arial, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', fontWeight: 300}}>Creá tu cuenta gratis · 30 días sin cargo</p>
         </div>
 
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-8">
-          <h2 className="text-xl font-bold text-white mb-6">Crear cuenta</h2>
+        <div className="border border-white/08 p-8" style={{background: 'rgba(255,255,255,0.03)'}}>
+          <h2 className="mb-6" style={{fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 400, color: '#fff'}}>Crear cuenta</h2>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl p-3 mb-4 text-sm">
-              {error}
+            <div className="border border-red-500/30 p-3 mb-4" style={{background: 'rgba(239,68,68,0.05)'}}>
+              <p style={{fontFamily: 'Arial, sans-serif', fontSize: '12px', color: 'rgba(239,68,68,0.8)', fontWeight: 300}}>{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
-              <label className="text-gray-400 text-sm mb-1 block">Nombre del negocio</label>
+              <label style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', letterSpacing: '2px', fontWeight: 300, display: 'block', marginBottom: '8px'}}>NOMBRE DEL NEGOCIO</label>
               <input
                 type="text"
                 placeholder="Ej: Peluquería Luna"
                 value={form.nombre}
                 onChange={e => setForm({...form, nombre: e.target.value})}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors"
+                className="w-full px-4 py-3 text-white placeholder-white/20 focus:outline-none transition-colors"
+                style={{background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', fontFamily: 'Arial, sans-serif', fontSize: '14px', fontWeight: 300}}
                 required
               />
             </div>
 
             <div>
-              <label className="text-gray-400 text-sm mb-1 block">URL de tu negocio</label>
-              <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#c8f135] transition-colors">
-                <span className="text-gray-600 text-sm mr-1">turnify.ar/</span>
+              <label style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', letterSpacing: '2px', fontWeight: 300, display: 'block', marginBottom: '8px'}}>URL DE TU NEGOCIO</label>
+              <div className="flex items-center px-4 py-3" style={{background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)'}}>
+                <span style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}}>slotly.com.ar/</span>
                 <input
                   type="text"
                   placeholder="peluqueria-luna"
                   value={form.slug}
                   onChange={e => setForm({...form, slug: e.target.value})}
-                  className="flex-1 bg-transparent text-white placeholder-gray-600 focus:outline-none text-sm"
+                  className="flex-1 bg-transparent text-white placeholder-white/20 focus:outline-none"
+                  style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', fontWeight: 300}}
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-gray-400 text-sm mb-1 block">Email</label>
+              <label style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', letterSpacing: '2px', fontWeight: 300, display: 'block', marginBottom: '8px'}}>EMAIL</label>
               <input
                 type="email"
                 placeholder="tu@email.com"
                 value={form.email}
                 onChange={e => setForm({...form, email: e.target.value})}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors"
+                className="w-full px-4 py-3 text-white placeholder-white/20 focus:outline-none transition-colors"
+                style={{background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', fontFamily: 'Arial, sans-serif', fontSize: '14px', fontWeight: 300}}
                 required
               />
             </div>
 
             <div>
-              <label className="text-gray-400 text-sm mb-1 block">Contraseña</label>
+              <label style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', letterSpacing: '2px', fontWeight: 300, display: 'block', marginBottom: '8px'}}>CONTRASEÑA</label>
               <input
                 type="password"
                 placeholder="Mínimo 8 caracteres"
                 value={form.password}
                 onChange={e => setForm({...form, password: e.target.value})}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#c8f135] transition-colors"
+                className="w-full px-4 py-3 text-white placeholder-white/20 focus:outline-none transition-colors"
+                style={{background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', fontFamily: 'Arial, sans-serif', fontSize: '14px', fontWeight: 300}}
                 required
                 minLength={8}
               />
@@ -107,19 +115,21 @@ export default function Registro() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-[#c8f135] text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="py-3 mt-2 transition-colors hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{background: '#fff', color: '#0D1B2A', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '3px', fontWeight: 400}}
             >
-              {loading ? 'Creando cuenta...' : 'Empezar 30 días gratis →'}
+              {loading ? 'CREANDO CUENTA...' : 'EMPEZAR 30 DÍAS GRATIS'}
             </button>
           </form>
 
-          <p className="text-center text-gray-500 text-sm mt-6">
+          <p className="text-center mt-6" style={{fontFamily: 'Arial, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}}>
             ¿Ya tenés cuenta?{' '}
-            <Link href="/login" className="text-[#c8f135] hover:underline">
+            <Link href="/login" className="hover:text-white/60 transition-colors" style={{color: 'rgba(255,255,255,0.5)'}}>
               Iniciá sesión
             </Link>
           </p>
         </div>
+
       </div>
     </main>
   )
