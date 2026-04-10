@@ -2,59 +2,61 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+    <main className="min-h-screen bg-[#0D1B2A] text-white overflow-x-hidden" style={{fontFamily: 'Georgia, serif'}}>
 
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md bg-black/80 border-b border-white/05">
-        <div className="font-black text-xl tracking-tight">Turn<span className="text-[#c8f135]">ify</span></div>
-        <div className="flex items-center gap-6">
-          <a href="#como" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">Cómo funciona</a>
-          <a href="#precios" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">Precios</a>
-          <Link href="/login" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">Iniciar sesión</Link>
-          <Link href="/registro" className="bg-[#c8f135] text-black px-4 py-2 rounded-full font-bold text-sm hover:scale-105 transition-transform">
-            Empezar gratis
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5 bg-[#0D1B2A]/90 border-b border-white/08" style={{backdropFilter: 'blur(12px)'}}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 border border-white/40 flex items-center justify-center">
+            <span style={{fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 400}}>S</span>
+          </div>
+          <span style={{fontFamily: 'Georgia, serif', fontSize: '13px', letterSpacing: '6px', fontWeight: 400}}>SLOTLY</span>
+        </div>
+        <div className="flex items-center gap-8">
+          <a href="#como" className="text-white/45 hover:text-white text-xs transition-colors hidden md:block" style={{letterSpacing: '1px', fontFamily: 'Arial, sans-serif', fontWeight: 300}}>Cómo funciona</a>
+          <a href="#precios" className="text-white/45 hover:text-white text-xs transition-colors hidden md:block" style={{letterSpacing: '1px', fontFamily: 'Arial, sans-serif', fontWeight: 300}}>Precios</a>
+          <Link href="/login" className="text-white/45 hover:text-white text-xs transition-colors hidden md:block" style={{letterSpacing: '1px', fontFamily: 'Arial, sans-serif', fontWeight: 300}}>Iniciar sesión</Link>
+          <Link href="/registro" className="border border-white/50 px-5 py-2 hover:bg-white/05 transition-colors" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '3px', fontWeight: 300}}>
+            EMPEZAR
           </Link>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="min-h-screen flex flex-col justify-center px-6 pt-24 pb-16 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#c8f135]/08 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#c8f135]/04 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto w-full relative">
-          <div className="inline-flex items-center gap-2 bg-[#c8f135]/10 border border-[#c8f135]/30 text-[#c8f135] text-xs font-bold px-4 py-2 rounded-full mb-8 uppercase tracking-widest">
-            <span className="w-2 h-2 bg-[#c8f135] rounded-full animate-pulse" />
-            30 días gratis · Sin tarjeta de crédito
+      <section className="min-h-screen flex flex-col justify-center px-8 pt-28 pb-16">
+        <div className="max-w-4xl mx-auto w-full text-center">
+          <div className="mb-8" style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '6px', color: 'rgba(255,255,255,0.3)', fontWeight: 300}}>
+            GESTIÓN INTELIGENTE DE TURNOS
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black leading-none tracking-tight mb-6">
-            Turnos online<br />para tu <span className="text-[#c8f135]">negocio</span>
+          <h1 className="mb-6 leading-tight" style={{fontFamily: 'Georgia, serif', fontSize: 'clamp(40px, 6vw, 68px)', fontWeight: 400, letterSpacing: '1px'}}>
+            Tu negocio siempre<br />disponible.
           </h1>
 
-          <p className="text-white/50 text-lg max-w-lg mb-10 font-light leading-relaxed">
-            Tu negocio siempre disponible. Tus clientes reservan en segundos desde el celular, vos gestionás todo desde un panel simple.
+          <p className="mb-12 mx-auto max-w-lg leading-relaxed" style={{fontFamily: 'Arial, sans-serif', fontSize: '15px', color: 'rgba(255,255,255,0.45)', fontWeight: 300, letterSpacing: '0.5px'}}>
+            Tus clientes reservan en segundos desde el celular.<br />
+            Vos gestionás todo desde un panel simple y elegante.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href="/registro" className="bg-[#c8f135] text-black px-8 py-4 rounded-full font-black text-lg hover:scale-105 transition-transform shadow-[0_0_40px_rgba(200,241,53,0.2)]">
-              Empezar gratis →
+          <div className="flex flex-wrap items-center gap-4 justify-center">
+            <Link href="/registro" className="bg-white text-[#0D1B2A] px-10 py-4 hover:bg-white/90 transition-colors" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '3px', fontWeight: 400}}>
+              EMPEZAR GRATIS
             </Link>
-            <a href="#como" className="text-white/50 hover:text-white text-sm transition-colors">
-              Ver cómo funciona ↓
+            <a href="#como" className="text-white/40 hover:text-white/70 transition-colors" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '2px', fontWeight: 300}}>
+              VER DEMO
             </a>
           </div>
 
-          <div className="flex flex-wrap gap-8 mt-16 pt-8 border-t border-white/08">
+          <div className="flex flex-wrap gap-12 mt-20 pt-8 border-t border-white/08 justify-center">
             {[
-              { num: '30', label: 'Días gratis' },
-              { num: '2min', label: 'Para configurar' },
-              { num: '0', label: 'Apps para bajar' },
-              { num: '24/7', label: 'Disponible siempre' },
+              { num: '30', label: 'DÍAS GRATIS' },
+              { num: '2min', label: 'PARA CONFIGURAR' },
+              { num: '0', label: 'APPS PARA BAJAR' },
+              { num: '24/7', label: 'DISPONIBLE' },
             ].map((s, i) => (
-              <div key={i}>
-                <div className="text-2xl font-black text-[#c8f135]">{s.num}</div>
-                <div className="text-white/40 text-xs mt-1">{s.label}</div>
+              <div key={i} className="text-center">
+                <div style={{fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: 400}}>{s.num}</div>
+                <div style={{fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '3px', color: 'rgba(255,255,255,0.3)', fontWeight: 300, marginTop: '6px'}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -62,10 +64,10 @@ export default function Home() {
       </section>
 
       {/* MARQUEE */}
-      <div className="bg-[#c8f135] py-3 overflow-hidden whitespace-nowrap">
+      <div className="border-t border-b border-white/08 py-4 overflow-hidden whitespace-nowrap">
         <div className="inline-flex animate-[marquee_20s_linear_infinite]">
           {['Peluquerías','Estética','Gimnasios','Consultorios','Veterinarias','Barbería','Nail Art','Masajes','Psicólogos','Nutricionistas','Peluquerías','Estética','Gimnasios','Consultorios','Veterinarias','Barbería','Nail Art','Masajes','Psicólogos','Nutricionistas'].map((item, i) => (
-            <span key={i} className="text-black font-black text-sm uppercase tracking-widest px-6">
+            <span key={i} style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '4px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}} className="px-6">
               {item} <span className="opacity-30">·</span>
             </span>
           ))}
@@ -73,21 +75,21 @@ export default function Home() {
       </div>
 
       {/* COMO FUNCIONA */}
-      <section id="como" className="py-24 px-6 bg-[#111]">
+      <section id="como" className="py-24 px-8 bg-[#091420]">
         <div className="max-w-5xl mx-auto">
-          <div className="text-[#c8f135] text-xs font-bold tracking-widest uppercase mb-4">Cómo funciona</div>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-16">Tres pasos y tu negocio<br />está online</h2>
+          <div className="mb-4" style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '5px', color: 'rgba(255,255,255,0.3)', fontWeight: 300}}>CÓMO FUNCIONA</div>
+          <h2 className="mb-16" style={{fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 400, letterSpacing: '0.5px'}}>Tres pasos y tu negocio<br />está online</h2>
           <div className="grid md:grid-cols-3 gap-px bg-white/06 border border-white/06">
             {[
-              { n: '01', icon: '⚙️', title: 'Configurás tu negocio', desc: 'Agregás tus servicios, precios, horarios y personalizás los colores. En menos de 2 minutos tenés tu perfil listo.' },
-              { n: '02', icon: '🔗', title: 'Compartís tu link', desc: 'Lo ponés en Instagram, WhatsApp o imprimís un QR para tu vidriera. Tus clientes entran y reservan.' },
-              { n: '03', icon: '📅', title: 'Gestionás desde el panel', desc: 'Ves todos tus turnos organizados, confirmás, cancelás y recibís notificaciones por WhatsApp.' },
+              { n: '01', title: 'Configurás tu negocio', desc: 'Agregás tus servicios, precios, horarios y personalizás los colores. En menos de 2 minutos tenés tu perfil listo.' },
+              { n: '02', title: 'Compartís tu link', desc: 'Lo ponés en Instagram, WhatsApp o imprimís un QR para tu vidriera. Tus clientes entran y reservan.' },
+              { n: '03', title: 'Gestionás desde el panel', desc: 'Ves todos tus turnos organizados, confirmás, cancelás y recibís notificaciones.' },
             ].map((step, i) => (
-              <div key={i} className="bg-[#111] p-8 relative hover:bg-[#1a1a1a] transition-colors">
-                <div className="absolute top-6 right-6 text-5xl font-black text-white/04">{step.n}</div>
-                <div className="text-3xl mb-5">{step.icon}</div>
-                <h3 className="font-black text-lg mb-2">{step.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{step.desc}</p>
+              <div key={i} className="bg-[#091420] p-10 relative hover:bg-[#0d1e2e] transition-colors">
+                <div className="absolute top-8 right-8" style={{fontFamily: 'Georgia, serif', fontSize: '48px', fontWeight: 400, color: 'rgba(255,255,255,0.04)'}}>{step.n}</div>
+                <div className="mb-6 w-8 h-px bg-white/20" />
+                <h3 className="mb-3" style={{fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 400}}>{step.title}</h3>
+                <p style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontWeight: 300, lineHeight: '1.8'}}>{step.desc}</p>
               </div>
             ))}
           </div>
@@ -95,23 +97,23 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-8 bg-[#0D1B2A]">
         <div className="max-w-5xl mx-auto">
-          <div className="text-[#c8f135] text-xs font-bold tracking-widest uppercase mb-4">Funciones</div>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-16">Todo lo que necesitás</h2>
+          <div className="mb-4" style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '5px', color: 'rgba(255,255,255,0.3)', fontWeight: 300}}>FUNCIONES</div>
+          <h2 className="mb-16" style={{fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 400}}>Todo lo que necesitás</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { icon: '📱', title: 'Página personalizable', desc: 'Tu color, tu logo, tu identidad' },
-              { icon: '🔔', title: 'Notificaciones WhatsApp', desc: 'Te avisamos de cada turno nuevo' },
-              { icon: '💳', title: 'Múltiples formas de pago', desc: 'Efectivo, transferencia y MP' },
-              { icon: '👥', title: 'Multi-empleado', desc: 'Cada uno con su propia agenda' },
-              { icon: '📊', title: 'Estadísticas', desc: 'Conocé tu negocio en números' },
-              { icon: '📸', title: 'Galería de fotos', desc: 'Mostrá tu trabajo a los clientes' },
+              { title: 'Página personalizable', desc: 'Tu color, tu logo, tu identidad' },
+              { title: 'Notificaciones WhatsApp', desc: 'Te avisamos de cada turno nuevo' },
+              { title: 'Múltiples formas de pago', desc: 'Efectivo, transferencia y MP' },
+              { title: 'Multi-empleado', desc: 'Cada uno con su propia agenda' },
+              { title: 'Estadísticas', desc: 'Conocé tu negocio en números' },
+              { title: 'Galería de fotos', desc: 'Mostrá tu trabajo a los clientes' },
             ].map((f, i) => (
-              <div key={i} className="bg-[#111] border border-white/08 rounded-2xl p-5 hover:border-[#c8f135]/20 transition-colors">
-                <div className="text-2xl mb-3">{f.icon}</div>
-                <div className="font-bold text-sm mb-1">{f.title}</div>
-                <div className="text-white/40 text-xs">{f.desc}</div>
+              <div key={i} className="border border-white/08 p-6 hover:border-white/20 transition-colors">
+                <div className="mb-4 w-6 h-px bg-white/20" />
+                <div className="mb-2" style={{fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: 400}}>{f.title}</div>
+                <div style={{fontFamily: 'Arial, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontWeight: 300}}>{f.desc}</div>
               </div>
             ))}
           </div>
@@ -119,63 +121,50 @@ export default function Home() {
       </section>
 
       {/* PRECIOS */}
-      <section id="precios" className="py-24 px-6 bg-[#111]">
+      <section id="precios" className="py-24 px-8 bg-[#091420]">
         <div className="max-w-5xl mx-auto">
-          <div className="text-[#c8f135] text-xs font-bold tracking-widest uppercase mb-4">Precios</div>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Simple y transparente</h2>
-          <p className="text-white/40 mb-16">30 días gratis en todos los planes · Sin tarjeta de crédito · Cancelás cuando querés</p>
+          <div className="mb-4" style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '5px', color: 'rgba(255,255,255,0.3)', fontWeight: 300}}>PRECIOS</div>
+          <h2 className="mb-3" style={{fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 400}}>Simple y transparente</h2>
+          <p className="mb-16" style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.3)', fontWeight: 300, letterSpacing: '0.5px'}}>30 días gratis en todos los planes · Sin tarjeta de crédito · Cancelás cuando querés</p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             {[
               {
                 name: 'Básico',
-                price: '6000',
+                price: '6.000',
                 popular: false,
                 desc: 'Perfecto para arrancar',
-                features: [
-                  '✓ Página de reservas personalizable',
-                  '✓ Panel de gestión completo',
-                  '✓ Hasta 5 servicios',
-                  '✓ 1 empleado',
-                  '✓ Hasta 30 turnos por mes',
-                  '✓ Notificaciones WhatsApp',
-                  '✓ Efectivo + Transferencia + MP',
-                ]
+                features: ['Página de reservas personalizable','Panel de gestión completo','Hasta 5 servicios','1 empleado','Hasta 30 turnos por mes','Notificaciones WhatsApp','Efectivo + Transferencia + MP']
               },
               {
                 name: 'Premium',
                 price: '10.000',
                 popular: true,
                 desc: 'Para negocios en crecimiento',
-                features: [
-                  '✓ Todo lo del plan Básico',
-                  '✓ Servicios ilimitados',
-                  '✓ Empleados ilimitados',
-                  '✓ Turnos ilimitados',
-                  '✓ Galería de fotos',
-                  '✓ Estadísticas del negocio',
-                  '✓ Sin marca Turnify',
-                ]
+                features: ['Todo lo del plan Básico','Servicios ilimitados','Empleados ilimitados','Turnos ilimitados','Galería de fotos','Estadísticas del negocio','Sin marca Slotly']
               },
             ].map((plan, i) => (
-              <div key={i} className={'rounded-2xl p-8 border relative ' + (plan.popular ? 'border-[#c8f135] bg-[#c8f135]/05' : 'border-white/08 bg-[#0a0a0a]')}>
+              <div key={i} className="p-8 border relative" style={{borderColor: plan.popular ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.08)'}}>
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#c8f135] text-black text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider">
-                    ⭐ Más popular
+                  <div className="absolute -top-3 left-8 bg-white text-[#0D1B2A] text-xs px-4 py-1" style={{fontFamily: 'Arial, sans-serif', letterSpacing: '2px', fontWeight: 400, fontSize: '10px'}}>
+                    MÁS POPULAR
                   </div>
                 )}
-                <div className="text-white/40 text-sm font-bold uppercase tracking-widest mb-1">{plan.name}</div>
-                <div className="text-xs text-gray-500 mb-4">{plan.desc}</div>
-                <div className="text-4xl font-black mb-1">${plan.price}</div>
-                <div className="text-white/30 text-xs mb-8">por mes · en pesos argentinos</div>
-                <ul className="flex flex-col gap-2 mb-8">
+                <div className="mb-1" style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '4px', color: 'rgba(255,255,255,0.4)', fontWeight: 300}}>{plan.name.toUpperCase()}</div>
+                <div className="mb-6" style={{fontFamily: 'Arial, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}}>{plan.desc}</div>
+                <div className="mb-1" style={{fontFamily: 'Georgia, serif', fontSize: '40px', fontWeight: 400}}>${plan.price}</div>
+                <div className="mb-8" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}}>por mes · en pesos argentinos</div>
+                <ul className="flex flex-col gap-3 mb-8">
                   {plan.features.map((f, j) => (
-                    <li key={j} className="text-sm text-white/60">{f}</li>
+                    <li key={j} style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 300, display: 'flex', gap: '10px'}}>
+                      <span style={{color: 'rgba(255,255,255,0.2)'}}>—</span> {f}
+                    </li>
                   ))}
                 </ul>
                 <Link href="/registro"
-                  className={'block text-center py-3 rounded-xl font-bold text-sm transition-transform hover:scale-[1.02] ' + (plan.popular ? 'bg-[#c8f135] text-black' : 'border border-white/15 text-white hover:border-white/40')}>
-                  Empezar 30 días gratis
+                  className="block text-center py-3 transition-colors hover:bg-white/05 border"
+                  style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '3px', fontWeight: 300, borderColor: plan.popular ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.15)'}}>
+                  EMPEZAR 30 DÍAS GRATIS
                 </Link>
               </div>
             ))}
@@ -184,26 +173,32 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 text-center relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[500px] h-[500px] bg-[#c8f135]/06 rounded-full blur-3xl" />
-        </div>
-        <div className="relative max-w-2xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-4">Tu negocio merece<br />trabajar solo</h2>
-          <p className="text-white/40 mb-8">Sumate a los negocios que ya dejaron de tomar turnos por WhatsApp.</p>
-          <Link href="/registro" className="inline-flex bg-[#c8f135] text-black px-8 py-4 rounded-full font-black text-lg hover:scale-105 transition-transform">
-            Empezar 30 días gratis →
+      <section className="py-32 px-8 text-center bg-[#0D1B2A]">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="mb-6" style={{fontFamily: 'Georgia, serif', fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 400, letterSpacing: '0.5px', lineHeight: '1.2'}}>
+            Tu negocio merece<br />trabajar solo.
+          </h2>
+          <p className="mb-12" style={{fontFamily: 'Arial, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.35)', fontWeight: 300, letterSpacing: '0.5px'}}>
+            Sumate a los negocios que ya dejaron de tomar turnos por WhatsApp.
+          </p>
+          <Link href="/registro" className="inline-block bg-white text-[#0D1B2A] px-12 py-4 hover:bg-white/90 transition-colors" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '3px', fontWeight: 400}}>
+            EMPEZAR 30 DÍAS GRATIS
           </Link>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="px-6 py-6 border-t border-white/06 flex flex-wrap items-center justify-between gap-4">
-        <div className="font-black">Turn<span className="text-[#c8f135]">ify</span></div>
-        <p className="text-white/30 text-xs">© 2026 Turnify · Hecho en Argentina 🇦🇷</p>
-        <div className="flex gap-4">
-          <Link href="/login" className="text-white/30 hover:text-white text-xs transition-colors">Iniciar sesión</Link>
-          <Link href="/registro" className="text-white/30 hover:text-white text-xs transition-colors">Registrarse</Link>
+      <footer className="px-8 py-8 border-t border-white/06 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 border border-white/30 flex items-center justify-center">
+            <span style={{fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: 400}}>S</span>
+          </div>
+          <span style={{fontFamily: 'Georgia, serif', fontSize: '11px', letterSpacing: '5px', color: 'rgba(255,255,255,0.6)'}}>SLOTLY</span>
+        </div>
+        <p style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)', fontWeight: 300}}>© 2026 Slotly · Hecho en Argentina 🇦🇷</p>
+        <div className="flex gap-6">
+          <Link href="/login" className="text-white/25 hover:text-white/60 transition-colors" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '1px', fontWeight: 300}}>Iniciar sesión</Link>
+          <Link href="/registro" className="text-white/25 hover:text-white/60 transition-colors" style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '1px', fontWeight: 300}}>Registrarse</Link>
         </div>
       </footer>
 
