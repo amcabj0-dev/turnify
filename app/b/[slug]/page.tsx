@@ -66,6 +66,13 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     const { data: neg } = await supabase.from('negocios').select('*').eq('slug', slug).single()
     if (neg) {
       setNegocio(neg)
+      let metaTheme = document.querySelector('meta[name="theme-color"]')
+      if (!metaTheme) {
+        metaTheme = document.createElement('meta')
+        metaTheme.setAttribute('name', 'theme-color')
+        document.head.appendChild(metaTheme)
+      }
+      metaTheme.setAttribute('content', neg.color || '#4f8ef7')
       const { data: servs } = await supabase.from('servicios').select('*').eq('negocio_id', neg.id).eq('activo', true)
       const { data: emps } = await supabase.from('empleados').select('*').eq('negocio_id', neg.id).eq('activo', true)
       setServicios(servs || [])
@@ -207,7 +214,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ── MODO CANCELAR ─────────────────────────────────────────────
   if (modoCancelar) return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
       <div style={{ height: '4px', background: color }} />
@@ -266,7 +272,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ── CONFIRMADO ────────────────────────────────────────────────
   if (confirmado) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', fontFamily: fuente }}>
       <style>{`
@@ -307,7 +312,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ── PÁGINA PRINCIPAL ──────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
       <style>{`
@@ -321,7 +325,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         @keyframes heroFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      {/* Lightbox galería */}
       {vistaGaleria && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           onClick={() => setVistaGaleria(null)}>
@@ -330,16 +333,12 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       )}
 
-      {/* ── HERO BANNER ── */}
       <div style={{ position: 'relative', width: '100%', height: negocio.foto_portada ? '320px' : 'auto', minHeight: negocio.foto_portada ? '320px' : '0', overflow: 'hidden' }}>
         {negocio.foto_portada ? (
           <>
-            {/* Imagen de fondo */}
             <img src={negocio.foto_portada} alt="Portada"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
-            {/* Overlay degradado */}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%)' }} />
-            {/* Contenido sobre el hero */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '2rem 1.5rem', maxWidth: '900px', margin: '0 auto', left: 0, right: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.25rem', animation: 'heroFadeIn 0.6s ease both' }}>
                 {negocio.logo_url ? (
@@ -363,7 +362,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             </div>
           </>
         ) : (
-          /* Sin foto de portada: header clásico */
           <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, padding: '1.5rem 1rem 1.25rem', maxWidth: '900px', margin: '0 auto' }}>
             <div style={{ height: '3px', background: color, borderRadius: '9999px', marginBottom: '1.25rem' }} />
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
@@ -387,10 +385,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         )}
       </div>
 
-      {/* ── INFO DEL NEGOCIO ── */}
       <div style={{ background: bgCard, borderBottom: '1px solid ' + borderColor, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem 1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between' }}>
-          {/* Chips de info */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {negocio.direccion && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>📍 {negocio.direccion}</span>
@@ -402,7 +398,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}</span>
             )}
           </div>
-          {/* Redes sociales */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {negocio.instagram && <a href={'https://instagram.com/' + negocio.instagram.replace('@','')} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: '#fff0f5', color: '#E1306C', textDecoration: 'none' }}>Instagram</a>}
             {negocio.facebook && <a href={'https://facebook.com/' + negocio.facebook} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: '700', padding: '4px 12px', borderRadius: '9999px', background: '#f0f4ff', color: '#1877F2', textDecoration: 'none' }}>Facebook</a>}
@@ -412,7 +407,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       </div>
 
-      {/* Galería Premium */}
       {esPremium && negocio.galeria && negocio.galeria.length > 0 && (
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem 1.25rem 0' }}>
           <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -424,10 +418,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         </div>
       )}
 
-      {/* ── CONTENIDO: STEPPER + PASOS ── */}
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
 
-        {/* Stepper */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2.5rem', gap: 0 }}>
           {[1,2,3,4].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
@@ -444,7 +436,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           ))}
         </div>
 
-        {/* PASO 1 */}
         {paso === 1 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
@@ -479,7 +470,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 2 */}
         {paso === 2 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
@@ -497,23 +487,22 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               </button>
               {empleados.map(e => (
                 <button key={e.id} className="btn-empleado" onClick={() => { setSeleccion({...seleccion, empleado: e}); setPaso(3) }}
-  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
-  {e.foto_url ? (
-    <img src={e.foto_url} alt={e.nombre} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + colorAlpha(0.25) }} />
-  ) : (
-    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '1rem', flexShrink: 0 }}>
-      {e.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
-    </div>
-  )}
-  <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem' }}>{e.nombre}</div>
-</button>
+                  style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '18px', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.18s', boxShadow: shadowCard }}>
+                  {e.foto_url ? (
+                    <img src={e.foto_url} alt={e.nombre} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1.5px solid ' + colorAlpha(0.25) }} />
+                  ) : (
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: colorAlpha(0.1), border: '1.5px solid ' + colorAlpha(0.25), display: 'flex', alignItems: 'center', justifyContent: 'center', color, fontWeight: '800', fontSize: '1rem', flexShrink: 0 }}>
+                      {e.nombre.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0,2)}
+                    </div>
+                  )}
+                  <div style={{ fontWeight: '700', color: textColor, fontSize: '1rem' }}>{e.nombre}</div>
+                </button>
               ))}
             </div>
             <button onClick={() => setPaso(1)} style={{ marginTop: '1.25rem', color: textSub, fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: fuente }}>← Volver</button>
           </div>
         )}
 
-        {/* PASO 3 */}
         {paso === 3 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
@@ -557,7 +546,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
           </div>
         )}
 
-        {/* PASO 4 */}
         {paso === 4 && (
           <div className="paso-content">
             <div style={{ marginBottom: '1.5rem' }}>
@@ -627,10 +615,9 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         )}
       </div>
 
-      {/* Footer */}
       <div style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid ' + borderColor }}>
         <p style={{ color: textSub, fontSize: '0.75rem', margin: 0 }}>
-          Reservas gestionadas por <span style={{ color, fontWeight: '700' }}>Turnify</span>
+          Reservas gestionadas por <span style={{ color, fontWeight: '700' }}>Slotly</span>
         </p>
       </div>
     </div>
