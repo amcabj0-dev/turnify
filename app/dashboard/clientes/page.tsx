@@ -17,11 +17,14 @@ export default function Clientes() {
   const [editWhatsapp, setEditWhatsapp] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [confirmEliminar, setConfirmEliminar] = useState(false)
+  const [dashboardHref, setDashboardHref] = useState('/dashboard')
 
   useEffect(() => {
     const n = JSON.parse(localStorage.getItem('negocio') || '{}')
     if (n.id) { setNegocio(n); cargarClientes(n.id) }
     else window.location.href = '/login'
+    const href = n.dashboard_estilo === 'minimalista' ? '/dashboard/minimalista' : '/dashboard'
+    setDashboardHref(href)
   }, [])
 
   const cargarClientes = async (negocioId: string) => {
@@ -132,7 +135,7 @@ export default function Clientes() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: "'DM Sans', sans-serif", paddingBottom: '80px' }}>
 
         <div style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--border-color)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', position: 'sticky', top: 0, zIndex: 50 }}>
-          <Link href="/dashboard" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+          <Link href={dashboardHref} style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </Link>
           <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: "'Syne', sans-serif", background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -166,7 +169,7 @@ export default function Clientes() {
           {clientesFiltrados.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
               <div style={{ fontSize: '36px', marginBottom: '10px' }}>👤</div>
-              {busqueda ? 'No se encontraron clientes' : 'Todavia no hay clientes registrados'}
+              {busqueda ? 'No se encontraron clientes' : 'Todavía no hay clientes registrados'}
             </div>
           ) : (
             clientesFiltrados.map(cliente => (
@@ -198,7 +201,7 @@ export default function Clientes() {
                     <div style={{ fontSize: '11px', fontWeight: 600, color: '#00d4ff' }}>
                       {cliente.ultimoTurno ? new Date(cliente.ultimoTurno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' }) : '---'}
                     </div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>ultimo turno</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>último turno</div>
                   </div>
                 </div>
               </div>
@@ -230,7 +233,7 @@ export default function Clientes() {
                   {[
                     { label: 'Turnos', value: clienteSeleccionado.cantidadTurnos, color: '#4f8ef7' },
                     { label: 'Gastado', value: '$' + clienteSeleccionado.totalGastado.toLocaleString('es-AR'), color: '#00e5a0' },
-                    { label: 'Ultimo', value: clienteSeleccionado.ultimoTurno ? new Date(clienteSeleccionado.ultimoTurno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '---', color: '#00d4ff' },
+                    { label: 'Último', value: clienteSeleccionado.ultimoTurno ? new Date(clienteSeleccionado.ultimoTurno.fecha_hora).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : '---', color: '#00d4ff' },
                   ].map((s, i) => (
                     <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
                       <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: s.color }}>{s.value}</div>
@@ -291,14 +294,14 @@ export default function Clientes() {
                   </button>
                 ) : (
                   <div style={{ marginTop: '16px', background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.25)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#ff6b6b', marginBottom: '12px' }}>{'Eliminar a ' + clienteSeleccionado.nombre + '?'}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '12px' }}>Se eliminara el cliente pero sus turnos quedaran en el sistema.</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#ff6b6b', marginBottom: '12px' }}>{'¿Eliminar a ' + clienteSeleccionado.nombre + '?'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '12px' }}>Se eliminará el cliente pero sus turnos quedarán en el sistema.</div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="action-btn" onClick={() => setConfirmEliminar(false)} style={{ flex: 1, background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.25)' }}>
                         Cancelar
                       </button>
                       <button className="action-btn" onClick={eliminarCliente} style={{ flex: 1, background: 'rgba(255,107,107,0.2)', color: '#ff6b6b', border: '1px solid rgba(255,107,107,0.4)' }}>
-                        Si, eliminar
+                        Sí, eliminar
                       </button>
                     </div>
                   </div>
@@ -332,11 +335,11 @@ export default function Clientes() {
       )}
 
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--nav-bg)', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0 14px', zIndex: 100 }}>
-        <Link href="/dashboard" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', color: 'var(--text-secondary)', fontSize: '9px', fontFamily: "'DM Sans', sans-serif", textDecoration: 'none' }}>
+        <Link href={dashboardHref} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', color: 'var(--text-secondary)', fontSize: '9px', fontFamily: "'DM Sans', sans-serif", textDecoration: 'none' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
           Inicio
         </Link>
-        <Link href="/dashboard" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', color: 'var(--text-secondary)', fontSize: '9px', fontFamily: "'DM Sans', sans-serif", textDecoration: 'none' }}>
+        <Link href={dashboardHref} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', color: 'var(--text-secondary)', fontSize: '9px', fontFamily: "'DM Sans', sans-serif", textDecoration: 'none' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Turnos
         </Link>
