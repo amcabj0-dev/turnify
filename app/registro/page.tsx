@@ -13,7 +13,20 @@ export default function Registro() {
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase
+    // 1. Crear usuario en Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+    })
+
+    if (authError) {
+      setError(authError.message)
+      setLoading(false)
+      return
+    }
+
+    // 2. Insertar negocio en tabla negocios (igual que antes)
+    const { data, error: negocioError } = await supabase
       .from('negocios')
       .insert([{
         nombre: form.nombre,
@@ -23,12 +36,16 @@ export default function Registro() {
       }])
       .select()
 
-    if (error) {
-      setError(error.message)
+    if (negocioError) {
+      setError(negocioError.message)
       setLoading(false)
       return
     }
 
+    // 3. Guardar en localStorage igual que antes
+    localStorage.clear()
+    localStorage.setItem('negocio_id', data[0].id)
+    localStorage.setItem('negocio', JSON.stringify(data[0]))
     window.location.href = '/dashboard'
   }
 
