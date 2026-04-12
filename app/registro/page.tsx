@@ -3,6 +3,17 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
+const limpiarSlug = (texto: string) => {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+}
+
 export default function Registro() {
   const [form, setForm] = useState({ nombre: '', slug: '', email: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -13,7 +24,22 @@ export default function Registro() {
     setLoading(true)
     setError('')
 
-    // 1. Crear usuario en Supabase Auth
+    const slugLimpio = limpiarSlug(form.slug)
+
+    // Verificar que el slug no esté tomado
+    const { data: slugExiste } = await supabase
+      .from('negocios')
+      .select('id')
+      .eq('slug', slugLimpio)
+      .single()
+
+    if (slugExiste) {
+      setError('Esa URL ya está en uso, elegí otra')
+      setLoading(false)
+      return
+    }
+
+    // Crear usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
@@ -25,12 +51,12 @@ export default function Registro() {
       return
     }
 
-    // 2. Insertar negocio en tabla negocios (igual que antes)
+    // Insertar negocio
     const { data, error: negocioError } = await supabase
       .from('negocios')
       .insert([{
         nombre: form.nombre,
-        slug: form.slug.toLowerCase().replace(/\s+/g, '-'),
+        slug: slugLimpio,
         email: form.email,
         password_hash: form.password
       }])
@@ -42,7 +68,6 @@ export default function Registro() {
       return
     }
 
-    // 3. Guardar en localStorage igual que antes
     localStorage.clear()
     localStorage.setItem('negocio_id', data[0].id)
     localStorage.setItem('negocio', JSON.stringify(data[0]))
@@ -89,17 +114,18 @@ export default function Registro() {
             <div>
               <label style={{fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', letterSpacing: '2px', fontWeight: 300, display: 'block', marginBottom: '8px'}}>URL DE TU NEGOCIO</label>
               <div className="flex items-center px-4 py-3" style={{background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)'}}>
-                <span style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}}>slotly.com.ar/</span>
+                <span style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.25)', fontWeight: 300}}>slotly.com.ar/b/</span>
                 <input
                   type="text"
                   placeholder="peluqueria-luna"
                   value={form.slug}
-                  onChange={e => setForm({...form, slug: e.target.value})}
+                  onChange={e => setForm({...form, slug: limpiarSlug(e.target.value)})}
                   className="flex-1 bg-transparent text-white placeholder-white/20 focus:outline-none"
                   style={{fontFamily: 'Arial, sans-serif', fontSize: '13px', fontWeight: 300}}
                   required
                 />
               </div>
+              <p style={{fontFamily: 'Arial, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px'}}>Solo letras, números y guiones. Sin tildes ni espacios.</p>
             </div>
 
             <div>
