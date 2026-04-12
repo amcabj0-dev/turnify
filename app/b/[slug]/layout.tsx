@@ -6,7 +6,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!negocio) return { title: 'Reservar turno' }
 
-  const imagen = negocio.foto_portada || negocio.logo_url || null
+  const imagen = negocio.logo_url || negocio.foto_portada || null
 
   return {
     title: negocio.nombre + ' — Reservar turno',
