@@ -29,8 +29,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     const n = JSON.parse(localStorage.getItem('negocio') || '{}')
-    if (n.id) { setNegocio(n); cargarTurnos(n.id) }
-    else window.location.href = '/login'
+    if (n.id) {
+      if (n.dashboard_estilo === 'minimalista') {
+        window.location.href = '/dashboard/minimalista'
+        return
+      }
+      setNegocio(n)
+      cargarTurnos(n.id)
+    } else {
+      window.location.href = '/login'
+    }
     const tema = localStorage.getItem('dashboard_tema') || 'oscuro'
     document.documentElement.setAttribute('data-theme', tema)
   }, [])
