@@ -14,9 +14,7 @@ const FRASES = [
   'Quien cuida a sus clientes construye un negocio para siempre.',
 ]
 
-const CVU = '0000003100073545831008'
 const ALIAS = 'aavp.mp'
-const TITULAR = 'Oscar Aaron Mena Ulloa'
 
 export default function Dashboard() {
   const [negocio, setNegocio] = useState<any>(null)
@@ -24,8 +22,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('hoy')
   const [copiado, setCopiado] = useState(false)
-  const [copiandoCVU, setCopiandoCVU] = useState(false)
-  const [copiandoAlias, setCopiandoAlias] = useState(false)
   const [tab, setTab] = useState('inicio')
   const turnosRef = useRef<any>(null)
 
@@ -75,19 +71,6 @@ export default function Dashboard() {
     })
     setCopiado(true)
     setTimeout(() => setCopiado(false), 2000)
-  }
-
-  const copiarTexto = (texto: string, setter: (v: boolean) => void) => {
-    navigator.clipboard?.writeText(texto).catch(() => {
-      const el = document.createElement('textarea')
-      el.value = texto
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
-    })
-    setter(true)
-    setTimeout(() => setter(false), 2000)
   }
 
   const scrollATurnos = (nuevoFiltro: string) => {
@@ -140,9 +123,6 @@ export default function Dashboard() {
     return { bg: 'rgba(255,209,102,0.12)', color: '#ffd166', border: 'rgba(255,209,102,0.25)', label: 'Pendiente' }
   }
 
-  const diasTrial = negocio?.trial_hasta
-    ? Math.max(0, Math.ceil((new Date(negocio.trial_hasta).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
-    : 0
   const planActual = negocio?.plan || 'basico'
 
   if (loading) return (
@@ -171,7 +151,6 @@ export default function Dashboard() {
         .menu-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border-card); cursor:pointer; transition:border-color 0.2s; text-decoration:none; }
         .menu-item:hover { border-color:rgba(79,142,247,0.3); }
         .badge { font-size:10px; padding:2px 7px; border-radius:20px; }
-        .copy-row { display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); border:1px solid var(--border-card); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
       `}</style>
 
@@ -200,7 +179,7 @@ export default function Dashboard() {
 
           {/* Saludo + frase */}
           <div>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '17px', fontWeight: 800, color: 'var(--text-primary)' }}>Buen dia 👋</h2>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '17px', fontWeight: 800, color: 'var(--text-primary)' }}>Buen día 👋</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00e5a0', display: 'inline-block', animation: 'pulse 2s infinite' }} />
               {negocio?.nombre} · {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -208,59 +187,6 @@ export default function Dashboard() {
             <div style={{ marginTop: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '10px 12px', borderLeft: '3px solid #4f8ef7' }}>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0 }}>{'💡 ' + frase}</p>
             </div>
-          </div>
-
-          {/* Card plan y pagos */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(79,142,247,0.25)', borderRadius: '12px', padding: '14px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '4px', color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              Tu plan
-              <span className="badge" style={{ background: planActual === 'premium' ? 'rgba(255,209,102,0.15)' : 'rgba(79,142,247,0.12)', color: planActual === 'premium' ? '#ffd166' : '#4f8ef7', border: '1px solid ' + (planActual === 'premium' ? 'rgba(255,209,102,0.3)' : 'rgba(79,142,247,0.3)') }}>
-                {planActual === 'premium' ? '⭐ PREMIUM' : 'BASICO'}
-              </span>
-            </div>
-            {diasTrial > 0 && (
-              <p style={{ fontSize: '11px', color: '#ffd166', margin: '0 0 10px' }}>
-                {'⏳ Trial activo · ' + diasTrial + ' dias restantes'}
-              </p>
-            )}
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 12px' }}>
-              {planActual === 'premium'
-                ? 'Tenes acceso completo a todas las funciones de Slotly.'
-                : 'Upgrade a Premium para servicios, empleados y turnos ilimitados + estadisticas + galeria.'}
-            </p>
-            {planActual !== 'premium' && (
-              <>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 600 }}>
-                  Para pagar tu plan transferí a:
-                </div>
-                <div className="copy-row">
-                  <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>CVU</div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>{CVU}</div>
-                  </div>
-                  <button onClick={() => copiarTexto(CVU, setCopiandoCVU)}
-                    style={{ background: copiandoCVU ? 'rgba(0,229,160,0.12)' : 'rgba(79,142,247,0.12)', color: copiandoCVU ? '#00e5a0' : '#4f8ef7', border: 'none', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                    {copiandoCVU ? 'Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-                <div className="copy-row">
-                  <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Alias</div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{ALIAS}</div>
-                  </div>
-                  <button onClick={() => copiarTexto(ALIAS, setCopiandoAlias)}
-                    style={{ background: copiandoAlias ? 'rgba(0,229,160,0.12)' : 'rgba(79,142,247,0.12)', color: copiandoAlias ? '#00e5a0' : '#4f8ef7', border: 'none', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                    {copiandoAlias ? 'Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                  {'Titular: ' + TITULAR + ' · Basico $6.000/mes · Premium $10.000/mes'}
-                </div>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Despues de transferir avisanos por WhatsApp para activar tu plan.
-                </div>
-              </>
-            )}
           </div>
 
           {/* Stats */}
@@ -287,60 +213,41 @@ export default function Dashboard() {
               <span className="badge" style={{ background: 'rgba(0,229,160,0.1)', color: '#00e5a0', border: '1px solid rgba(0,229,160,0.2)' }}>activo</span>
             </div>
             <button onClick={copiarLink} style={{ width: '100%', background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', color: '#000', border: 'none', borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-              {copiado ? 'Copiado!' : 'Copiar link'}
+              {copiado ? '¡Copiado!' : 'Copiar link'}
             </button>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '8px' }}>/b/{negocio?.slug}</div>
           </div>
 
-          {/* Gestion */}
+          {/* Gestión */}
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', color: 'var(--text-primary)' }}>Gestion</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', color: 'var(--text-primary)' }}>Gestión</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {[
                 { icon: '🗂️', label: 'Servicios', href: '/dashboard/servicios' },
                 { icon: '👥', label: 'Empleados', href: '/dashboard/empleados' },
                 { icon: '👤', label: 'Clientes', href: '/dashboard/clientes' },
-                { icon: '⚙️', label: 'Configuracion', href: '/dashboard/configuracion' },
+                { icon: '⚙️', label: 'Configuración', href: '/dashboard/configuracion' },
+                { icon: '🏋️', label: 'Gimnasio', href: '/dashboard/gimnasio' },
+                { icon: '📦', label: 'Productos', href: '/dashboard/productos' },
+                { icon: '🤖', label: 'Asistente IA', href: '/dashboard/asistente' },
               ].map((item, i) => (
                 <Link key={i} href={item.href} className="menu-item">
                   <span style={{ fontSize: '16px' }}>{item.icon}</span>
                   <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.label}</span>
                 </Link>
               ))}
-            </div>
-
-            {/* Suscripcion */}
-            <div style={{ marginTop: '10px', border: '1px solid rgba(255,209,102,0.2)', borderRadius: '10px', padding: '12px', background: 'rgba(255,209,102,0.04)' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#ffd166', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                💳 Mi suscripción
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.5 }}>
-                Renová tu plan mensual con Mercado Pago o transferí directo al alias.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <a href="https://link.mercadopago.com.ar/slotly" target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#009EE3', color: '#fff', borderRadius: '8px', padding: '10px', fontSize: '12px', fontWeight: 700, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif" }}>
-                  💙 Pagar con Mercado Pago
-                </a>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '8px 12px' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Alias</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{ALIAS}</div>
-                  </div>
-                  <button onClick={() => copiarTexto(ALIAS, setCopiandoAlias)}
-                    style={{ background: copiandoAlias ? 'rgba(0,229,160,0.12)' : 'rgba(79,142,247,0.12)', color: copiandoAlias ? '#00e5a0' : '#4f8ef7', border: 'none', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                    {copiandoAlias ? '✓ Copiado' : 'Copiar'}
-                  </button>
-                </div>
-              </div>
+              <a href="https://link.mercadopago.com.ar/slotly" target="_blank" rel="noreferrer" className="menu-item">
+                <span style={{ fontSize: '16px' }}>💳</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>Suscripción</span>
+              </a>
             </div>
           </div>
 
-          {/* Grafico */}
+          {/* Gráfico */}
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
-              Turnos por dia
-              <span className="badge" style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)' }}>Historico</span>
+              Turnos por día
+              <span className="badge" style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)' }}>Histórico</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '70px' }}>
               {turnosPorDia.map((d, i) => {
@@ -361,7 +268,7 @@ export default function Dashboard() {
           {topServicios.length > 0 && (
             <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '14px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
-                Servicios mas pedidos
+                Servicios más pedidos
                 <span className="badge" style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid rgba(79,142,247,0.3)' }}>Top {topServicios.length}</span>
               </div>
               {topServicios.map(([nombre, count], i) => (
@@ -381,7 +288,7 @@ export default function Dashboard() {
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
               Turnos
               <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-primary)', borderRadius: '8px', padding: '3px' }}>
-                {[{ v: 'hoy', l: 'Hoy' }, { v: 'manana', l: 'Manana' }, { v: 'semana', l: 'Semana' }, { v: 'todos', l: 'Todos' }].map(f => (
+                {[{ v: 'hoy', l: 'Hoy' }, { v: 'manana', l: 'Mañana' }, { v: 'semana', l: 'Semana' }, { v: 'todos', l: 'Todos' }].map(f => (
                   <button key={f.v} className={'filter-tab' + (filtro === f.v ? ' active' : '')} onClick={() => setFiltro(f.v)}>{f.l}</button>
                 ))}
               </div>
@@ -446,28 +353,6 @@ export default function Dashboard() {
                 )
               })
             )}
-          </div>
-
-          {/* Card donacion */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(79,142,247,0.08),rgba(124,90,247,0.08))', border: '1px solid rgba(79,142,247,0.2)', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '6px' }}>💙</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', marginBottom: '6px' }}>
-              Apoya a Slotly
-            </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.5 }}>
-              Slotly es un proyecto independiente hecho con mucho esfuerzo. Si te esta ayudando a crecer, cualquier aporte nos motiva a seguir mejorando. Gracias de corazon.
-            </p>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Alias MP</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{ALIAS}</div>
-              </div>
-              <button onClick={() => copiarTexto(ALIAS, setCopiandoAlias)}
-                style={{ background: copiandoAlias ? 'rgba(0,229,160,0.12)' : 'rgba(79,142,247,0.12)', color: copiandoAlias ? '#00e5a0' : '#4f8ef7', border: 'none', borderRadius: '8px', padding: '6px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                {copiandoAlias ? 'Copiado!' : 'Copiar alias'}
-              </button>
-            </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{'Titular: ' + TITULAR}</div>
           </div>
 
         </div>
