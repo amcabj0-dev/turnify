@@ -30,6 +30,7 @@ const PAISES = [
   { codigo: '51',   bandera: '🇵🇪', nombre: 'Perú' },
   { codigo: '1787', bandera: '🇵🇷', nombre: 'Puerto Rico' },
   { codigo: '1809', bandera: '🇩🇴', nombre: 'Rep. Dominicana' },
+<<<<<<< HEAD
   { codigo: '598',  bandera: '🇺🇾', nombre: 'Uruguay' },
   { codigo: '58',   bandera: '🇻🇪', nombre: 'Venezuela' },
 ]
@@ -682,3 +683,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 }
+=======
+  { c
+>>>>>>> 0964d59 (feat: logo clickeable en login y registro + mejoras registro)

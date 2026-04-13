@@ -8,7 +8,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -50,12 +50,17 @@ export default function Login() {
       <div className="w-full max-w-md">
 
         <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-9 h-9 border border-white/40 flex items-center justify-center">
-              <span style={{fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 400, color: '#fff'}}>S</span>
+          {/* LOGO CLICKEABLE */}
+          <a href="/" style={{ display: 'inline-block', marginBottom: '16px', opacity: 1, transition: 'opacity 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-9 h-9 border border-white/40 flex items-center justify-center">
+                <span style={{fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 400, color: '#fff'}}>S</span>
+              </div>
+              <span style={{fontFamily: 'Georgia, serif', fontSize: '13px', letterSpacing: '6px', fontWeight: 400, color: '#fff'}}>SLOTLY</span>
             </div>
-            <span style={{fontFamily: 'Georgia, serif', fontSize: '13px', letterSpacing: '6px', fontWeight: 400, color: '#fff'}}>SLOTLY</span>
-          </div>
+          </a>
           <p style={{fontFamily: 'Arial, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', fontWeight: 300}}>Bienvenido de vuelta</p>
         </div>
 
