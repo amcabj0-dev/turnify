@@ -30,12 +30,14 @@ const PAISES = [
   { codigo: '51',   bandera: '🇵🇪', nombre: 'Perú' },
   { codigo: '1787', bandera: '🇵🇷', nombre: 'Puerto Rico' },
   { codigo: '1809', bandera: '🇩🇴', nombre: 'Rep. Dominicana' },
-<<<<<<< HEAD
   { codigo: '598',  bandera: '🇺🇾', nombre: 'Uruguay' },
   { codigo: '58',   bandera: '🇻🇪', nombre: 'Venezuela' },
 ]
 
 const normalizarWA = (numero: string) => numero.replace(/\D/g, '')
+
+type TramoHorario = { abre: string; cierra: string }
+type HorariosJson = Record<string, TramoHorario[] | null>
 
 export default function Reserva({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
@@ -90,7 +92,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       setServicios(servs || [])
       setEmpleados(emps || [])
 
-      // Verificar límite de turnos del mes
       const ahora = new Date()
       const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString()
       const finMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59).toISOString()
@@ -114,7 +115,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     setCargandoHoras(true)
     const inicioDia = seleccion.fecha + 'T00:00:00'
     const finDia = seleccion.fecha + 'T23:59:59'
-
     let query = supabase
       .from('turnos')
       .select('fecha_hora, servicios(duracion_minutos)')
@@ -122,43 +122,72 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       .in('estado', ['pendiente', 'confirmado'])
       .gte('fecha_hora', inicioDia)
       .lte('fecha_hora', finDia)
-
     if (seleccion.empleado) {
       query = query.eq('empleado_id', seleccion.empleado.id)
     }
-
     const { data } = await query
     setTurnosOcupados(data || [])
     setCargandoHoras(false)
+  }
+
+  // Leer horarios_json o fallback al sistema viejo
+  const getTramosDelDia = (fechaStr: string): TramoHorario[] => {
+    const dia = new Date(fechaStr + 'T12:00').getDay().toString()
+    const horariosJson: HorariosJson = negocio?.horarios_json
+    if (horariosJson) {
+      return horariosJson[dia] || []
+    }
+    // Fallback sistema viejo
+    if (!negocio?.horario_apertura || !negocio?.horario_cierre) return [{ abre: '09:00', cierra: '18:00' }]
+    const tramos: TramoHorario[] = [{ abre: negocio.horario_apertura.slice(0,5), cierra: negocio.horario_cierre.slice(0,5) }]
+    if (negocio.horario_cortado && negocio.horario_apertura_2 && negocio.horario_cierre_2) {
+      tramos.push({ abre: negocio.horario_apertura_2.slice(0,5), cierra: negocio.horario_cierre_2.slice(0,5) })
+    }
+    return tramos
+  }
+
+  const esDiaDisponible = (fechaStr: string) => {
+    const horariosJson: HorariosJson = negocio?.horarios_json
+    if (horariosJson) {
+      const dia = new Date(fechaStr + 'T12:00').getDay().toString()
+      const tramos = horariosJson[dia]
+      return tramos !== null && tramos !== undefined && tramos.length > 0
+    }
+    // Fallback sistema viejo
+    if (!negocio?.dias_atencion || negocio.dias_atencion.length === 0) return true
+    const dia = new Date(fechaStr + 'T12:00').getDay().toString()
+    return negocio.dias_atencion.includes(dia)
   }
 
   const generarHoras = () => {
     const slots: { hora: string; disponible: boolean }[] = []
     const intervalo = negocio?.intervalo_turnos || 30
     const duracionNueva = seleccion.servicio?.duracion_minutos || 30
+    const tramos = getTramosDelDia(seleccion.fecha)
 
-    const inicio = negocio?.horario_apertura ? parseInt(negocio.horario_apertura.split(':')[0]) * 60 + parseInt(negocio.horario_apertura.split(':')[1]) : 9 * 60
-    const fin = negocio?.horario_cierre ? parseInt(negocio.horario_cierre.split(':')[0]) * 60 + parseInt(negocio.horario_cierre.split(':')[1]) : 18 * 60
+    for (const tramo of tramos) {
+      const inicio = parseInt(tramo.abre.split(':')[0]) * 60 + parseInt(tramo.abre.split(':')[1])
+      const fin = parseInt(tramo.cierra.split(':')[0]) * 60 + parseInt(tramo.cierra.split(':')[1])
 
-    for (let m = inicio; m < fin; m += intervalo) {
-      const h = Math.floor(m / 60).toString().padStart(2, '0')
-      const min = (m % 60).toString().padStart(2, '0')
-      const horaStr = h + ':' + min
+      for (let m = inicio; m < fin; m += intervalo) {
+        const h = Math.floor(m / 60).toString().padStart(2, '0')
+        const min = (m % 60).toString().padStart(2, '0')
+        const horaStr = h + ':' + min
+        const inicioNuevo = m
+        const finNuevo = m + duracionNueva
 
-      const inicioNuevo = m
-      const finNuevo = m + duracionNueva
+        const turnosEnSlot = turnosOcupados.filter(turno => {
+          const hTurno = new Date(turno.fecha_hora).getHours()
+          const mTurno = new Date(turno.fecha_hora).getMinutes()
+          const inicioExistente = hTurno * 60 + mTurno
+          const duracionExistente = turno.servicios?.duracion_minutos || 30
+          const finExistente = inicioExistente + duracionExistente
+          return inicioNuevo < finExistente && finNuevo > inicioExistente
+        }).length
 
-      const turnosEnSlot = turnosOcupados.filter(turno => {
-        const hTurno = new Date(turno.fecha_hora).getHours()
-        const mTurno = new Date(turno.fecha_hora).getMinutes()
-        const inicioExistente = hTurno * 60 + mTurno
-        const duracionExistente = turno.servicios?.duracion_minutos || 30
-        const finExistente = inicioExistente + duracionExistente
-        return inicioNuevo < finExistente && finNuevo > inicioExistente
-      }).length
-
-      const ocupado = turnosEnSlot >= (negocio.turnos_simultaneos || 1)
-      slots.push({ hora: horaStr, disponible: !ocupado })
+        const ocupado = turnosEnSlot >= (negocio.turnos_simultaneos || 1)
+        slots.push({ hora: horaStr, disponible: !ocupado })
+      }
     }
     return slots
   }
@@ -189,7 +218,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   }
 
   const confirmarTurno = async () => {
-    // Doble check por si acaso
     if (limiteTurnosAlcanzado) return
     setGuardando(true)
     const waSinPrefijo = normalizarWA(seleccion.whatsapp)
@@ -220,12 +248,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     }
     setConfirmado(true)
     setGuardando(false)
-  }
-
-  const esDiaDisponible = (fechaStr: string) => {
-    if (!negocio?.dias_atencion || negocio.dias_atencion.length === 0) return true
-    const dia = new Date(fechaStr + 'T12:00').getDay().toString()
-    return negocio.dias_atencion.includes(dia)
   }
 
   const color = negocio?.color || '#4f8ef7'
@@ -286,7 +308,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // LÍMITE DE TURNOS ALCANZADO
   if (limiteTurnosAlcanzado) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', fontFamily: fuente }}>
       <div style={{ textAlign: 'center', maxWidth: '420px' }}>
@@ -482,11 +503,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             {negocio.direccion && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>📍 {negocio.direccion}</span>
             )}
-            {negocio.horario_apertura && negocio.horario_cierre && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>🕐 {negocio.horario_apertura.slice(0,5)} – {negocio.horario_cierre.slice(0,5)}</span>
-            )}
-            {negocio.dias_atencion && negocio.dias_atencion.length > 0 && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>📅 {negocio.dias_atencion.sort().map((d: string) => DIAS_NOMBRES[parseInt(d)]).join(' · ')}</span>
+            {negocio.horarios_json && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: textSub, fontSize: '0.78rem', background: bgSubtle, padding: '4px 12px', borderRadius: '9999px', fontWeight: '500' }}>
+                📅 {Object.entries(negocio.horarios_json).filter(([, v]) => v !== null && (v as any).length > 0).map(([k]) => DIAS_NOMBRES[parseInt(k)]).join(' · ')}
+              </span>
             )}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -510,7 +530,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       )}
 
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
-
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2.5rem', gap: 0 }}>
           {[1,2,3,4].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
@@ -621,10 +640,10 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                       style={{
                         background: seleccion.hora === slot.hora ? color : bgCard,
                         border: '1.5px solid ' + (seleccion.hora === slot.hora ? color : borderColor),
-                        borderRadius: '10px', padding: '0.75rem 0.5rem', color: !slot.disponible ? (tema === 'light' ? '#ccc' : '#444') : (seleccion.hora === slot.hora ? '#fff' : textColor),
+                        borderRadius: '10px', padding: '0.75rem 0.5rem',
+                        color: !slot.disponible ? (tema === 'light' ? '#ccc' : '#444') : (seleccion.hora === slot.hora ? '#fff' : textColor),
                         fontSize: '0.875rem', fontWeight: '700', cursor: slot.disponible ? 'pointer' : 'not-allowed',
-                        opacity: !slot.disponible ? 0.5 : 1,
-                        transition: 'all 0.15s'
+                        opacity: !slot.disponible ? 0.5 : 1, transition: 'all 0.15s'
                       }}>
                       {slot.hora}
                     </button>
@@ -683,6 +702,3 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 }
-=======
-  { c
->>>>>>> 0964d59 (feat: logo clickeable en login y registro + mejoras registro)
