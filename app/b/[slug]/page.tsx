@@ -61,6 +61,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [cargandoHoras, setCargandoHoras] = useState(false)
   const [turnosMes, setTurnosMes] = useState(0)
   const [limiteTurnosAlcanzado, setLimiteTurnosAlcanzado] = useState(false)
+  const [copiado, setCopiado] = useState<string | null>(null)
 
   useEffect(() => {
     cargarNegocio()
@@ -130,14 +131,12 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     setCargandoHoras(false)
   }
 
-  // Leer horarios_json o fallback al sistema viejo
   const getTramosDelDia = (fechaStr: string): TramoHorario[] => {
     const dia = new Date(fechaStr + 'T12:00').getDay().toString()
     const horariosJson: HorariosJson = negocio?.horarios_json
     if (horariosJson) {
       return horariosJson[dia] || []
     }
-    // Fallback sistema viejo
     if (!negocio?.horario_apertura || !negocio?.horario_cierre) return [{ abre: '09:00', cierra: '18:00' }]
     const tramos: TramoHorario[] = [{ abre: negocio.horario_apertura.slice(0,5), cierra: negocio.horario_cierre.slice(0,5) }]
     if (negocio.horario_cortado && negocio.horario_apertura_2 && negocio.horario_cierre_2) {
@@ -153,7 +152,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       const tramos = horariosJson[dia]
       return tramos !== null && tramos !== undefined && tramos.length > 0
     }
-    // Fallback sistema viejo
     if (!negocio?.dias_atencion || negocio.dias_atencion.length === 0) return true
     const dia = new Date(fechaStr + 'T12:00').getDay().toString()
     return negocio.dias_atencion.includes(dia)
@@ -190,6 +188,19 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       }
     }
     return slots
+  }
+
+  const copiarAlPortapapeles = (texto: string, key: string) => {
+    navigator.clipboard?.writeText(texto).catch(() => {
+      const el = document.createElement('textarea')
+      el.value = texto
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    })
+    setCopiado(key)
+    setTimeout(() => setCopiado(null), 2000)
   }
 
   const buscarTurnos = async () => {
@@ -396,7 +407,9 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         <p style={{ color: textSub, marginBottom: '1.75rem', fontSize: '0.95rem', animation: 'slideUp 0.4s 0.25s both' }}>
           {negocio.mensaje_confirmacion || 'Tu turno quedó reservado. ¡Te esperamos!'}
         </p>
-        <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '20px', padding: '1.5rem', textAlign: 'left', marginBottom: '1.5rem', boxShadow: shadowCard, animation: 'slideUp 0.4s 0.35s both' }}>
+
+        {/* RESUMEN TURNO */}
+        <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '20px', padding: '1.5rem', textAlign: 'left', marginBottom: '1rem', boxShadow: shadowCard, animation: 'slideUp 0.4s 0.35s both' }}>
           <div style={{ height: '4px', background: color, borderRadius: '9999px', marginBottom: '1.25rem' }} />
           {[
             { icon: '📋', label: 'Servicio', value: seleccion.servicio?.nombre },
@@ -412,6 +425,64 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
             </div>
           ))}
         </div>
+
+        {/* CARD DE PAGO */}
+        {seleccion.pago === 'transferencia' && (negocio.pago_alias || negocio.pago_cbu || negocio.pago_link) && (
+          <div style={{ background: bgCard, border: '1.5px solid ' + borderColor, borderRadius: '20px', padding: '1.25rem', textAlign: 'left', marginBottom: '1rem', boxShadow: shadowCard, animation: 'slideUp 0.4s 0.4s both' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: '700', color: textSub, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+              💳 Datos para el pago
+            </div>
+
+            {negocio.pago_link && (
+              <a href={negocio.pago_link} target="_blank" rel="noreferrer"
+                style={{ display: 'block', width: '100%', background: '#009ee3', color: '#fff', fontWeight: '700', fontSize: '0.9rem', padding: '0.75rem', borderRadius, textDecoration: 'none', textAlign: 'center', marginBottom: '12px', boxSizing: 'border-box' }}>
+                💙 Pagar con Mercado Pago
+              </a>
+            )}
+
+            {(negocio.pago_alias || negocio.pago_cbu) && (
+              <div style={{ background: bgSubtle, borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {negocio.pago_alias && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: textSub, marginBottom: '2px', letterSpacing: '0.05em' }}>ALIAS</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: '700', color: textColor }}>{negocio.pago_alias}</div>
+                    </div>
+                    <button onClick={() => copiarAlPortapapeles(negocio.pago_alias, 'alias')}
+                      style={{ background: copiado === 'alias' ? 'rgba(0,229,160,0.12)' : colorAlpha(0.12), border: 'none', borderRadius: '8px', padding: '6px 12px', color: copiado === 'alias' ? '#00e5a0' : color, fontSize: '11px', fontWeight: '700', cursor: 'pointer', fontFamily: fuente, flexShrink: 0, transition: 'all 0.2s' }}>
+                      {copiado === 'alias' ? '✓ Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                )}
+                {negocio.pago_cbu && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: textSub, marginBottom: '2px', letterSpacing: '0.05em' }}>CBU / CVU</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: '600', color: textColor, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis' }}>{negocio.pago_cbu}</div>
+                    </div>
+                    <button onClick={() => copiarAlPortapapeles(negocio.pago_cbu, 'cbu')}
+                      style={{ background: copiado === 'cbu' ? 'rgba(0,229,160,0.12)' : colorAlpha(0.12), border: 'none', borderRadius: '8px', padding: '6px 12px', color: copiado === 'cbu' ? '#00e5a0' : color, fontSize: '11px', fontWeight: '700', cursor: 'pointer', fontFamily: fuente, flexShrink: 0, transition: 'all 0.2s' }}>
+                      {copiado === 'cbu' ? '✓ Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                )}
+                {negocio.pago_titular && (
+                  <div>
+                    <div style={{ fontSize: '0.7rem', color: textSub, marginBottom: '2px', letterSpacing: '0.05em' }}>TITULAR</div>
+                    <div style={{ fontSize: '0.875rem', color: textColor }}>{negocio.pago_titular}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {negocio.pago_instrucciones && (
+              <p style={{ fontSize: '0.75rem', color: textSub, margin: '10px 0 0', textAlign: 'center', fontStyle: 'italic' }}>
+                {negocio.pago_instrucciones}
+              </p>
+            )}
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', animation: 'slideUp 0.4s 0.45s both' }}>
           <button onClick={() => { setConfirmado(false); setPaso(1); setSeleccion({ servicio: null, empleado: null, fecha: '', hora: '', nombre: '', whatsapp: '', pago: 'efectivo' }) }}
             style={{ ...estiloBotonPrimario }}>Sacar otro turno</button>
