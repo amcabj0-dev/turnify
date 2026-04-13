@@ -15,8 +15,6 @@ const limpiarSlug = (texto: string) => {
   return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim()
 }
 
-const ACENTOS_MINIMALISTA = ['#c8a96e','#7ecb9a','#7ab0e0','#e07070','#a78bfa','#f0ede8']
-
 const DIAS_SEMANA = [
   { v: '0', l: 'Domingo' },
   { v: '1', l: 'Lunes' },
@@ -50,6 +48,7 @@ export default function Configuracion() {
     instagram: '', facebook: '', tiktok: '', google_maps: '',
     intervalo_turnos: 30, turnos_simultaneos: 1,
     dashboard_estilo: 'clasico', dashboard_acento: '#c8a96e',
+    pago_alias: '', pago_cbu: '', pago_titular: '', pago_link: '', pago_instrucciones: '',
   })
   const [horarios, setHorarios] = useState<HorariosJson>(horariosDefault)
   const [temaDashboard, setTemaDashboard] = useState('oscuro')
@@ -97,6 +96,11 @@ export default function Configuracion() {
         turnos_simultaneos: n.turnos_simultaneos || 1,
         dashboard_estilo: n.dashboard_estilo || 'clasico',
         dashboard_acento: n.dashboard_acento || '#c8a96e',
+        pago_alias: n.pago_alias || '',
+        pago_cbu: n.pago_cbu || '',
+        pago_titular: n.pago_titular || '',
+        pago_link: n.pago_link || '',
+        pago_instrucciones: n.pago_instrucciones || '',
       })
       setHorarios(n.horarios_json || horariosDefault)
       setLogoUrl(n.logo_url || '')
@@ -254,6 +258,11 @@ export default function Configuracion() {
         dashboard_estilo: 'clasico',
         dashboard_acento: form.dashboard_acento,
         horarios_json: horarios,
+        pago_alias: form.pago_alias,
+        pago_cbu: form.pago_cbu,
+        pago_titular: form.pago_titular,
+        pago_link: form.pago_link,
+        pago_instrucciones: form.pago_instrucciones,
       })
       .eq('id', negocio.id)
       .select()
@@ -531,7 +540,6 @@ export default function Configuracion() {
                   <span style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '9px', background: 'rgba(255,209,102,0.12)', color: '#ffd166', border: '1px solid rgba(255,209,102,0.3)', padding: '2px 6px', borderRadius: '20px', fontWeight: 700 }}>Próximamente</span>
                 </div>
               </div>
-
               {form.dashboard_estilo === 'clasico' && (
                 <div>
                   <label style={labelStyle}>Tema de color</label>
@@ -552,7 +560,7 @@ export default function Configuracion() {
             {/* ── SECCIÓN 3: OPERACIÓN ── */}
             <div style={sectionHeaderStyle}>⚙️ Operación</div>
 
-            {/* HORARIOS ESTILO WHATSAPP */}
+            {/* HORARIOS */}
             <div style={cardStyle}>
               <div style={sectionTitleStyle}>🕐 Horarios de atención</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -628,6 +636,49 @@ export default function Configuracion() {
                   style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
               </div>
               <p style={{ fontSize: '10px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>Sin el 0 y sin el 15</p>
+            </div>
+
+            {/* ── SECCIÓN 4: COBRO ── */}
+            <div style={sectionHeaderStyle}>💳 Cobro</div>
+
+            <div style={cardStyle}>
+              <div style={sectionTitleStyle}>🏦 Transferencia bancaria</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={labelStyle}>Alias</label>
+                  <input type="text" placeholder="Ej: peluqueria.luna.mp"
+                    value={form.pago_alias} onChange={e => setForm({...form, pago_alias: e.target.value})} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>CBU / CVU</label>
+                  <input type="text" placeholder="22 dígitos"
+                    value={form.pago_cbu} onChange={e => setForm({...form, pago_cbu: e.target.value})} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Titular de la cuenta</label>
+                  <input type="text" placeholder="Nombre del titular"
+                    value={form.pago_titular} onChange={e => setForm({...form, pago_titular: e.target.value})} style={inputStyle} />
+                </div>
+              </div>
+            </div>
+
+            <div style={cardStyle}>
+              <div style={sectionTitleStyle}>🔗 Link de pago</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={labelStyle}>Link de Mercado Pago u otro</label>
+                  <input type="text" placeholder="https://link.mercadopago.com.ar/tunegocio"
+                    value={form.pago_link} onChange={e => setForm({...form, pago_link: e.target.value})} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Instrucciones para el cliente</label>
+                  <input type="text" placeholder="Ej: Enviá el comprobante por WhatsApp"
+                    value={form.pago_instrucciones} onChange={e => setForm({...form, pago_instrucciones: e.target.value})} style={inputStyle} />
+                </div>
+              </div>
+              <p style={{ fontSize: '10px', color: 'var(--text-secondary)', margin: '10px 0 0' }}>
+                Estos datos se muestran al cliente al finalizar su reserva cuando elige pagar por transferencia.
+              </p>
             </div>
 
             {/* GUARDAR */}
