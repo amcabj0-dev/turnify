@@ -53,8 +53,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [turnosCancelables, setTurnosCancelables] = useState<any[]>([])
   const [buscando, setBuscando] = useState(false)
   const [cancelado, setCancelado] = useState(false)
-  
-  // Nuevo: Estado para turnos ya ocupados
   const [turnosOcupados, setTurnosOcupados] = useState<any[]>([])
   const [cargandoHoras, setCargandoHoras] = useState(false)
 
@@ -66,7 +64,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     document.head.appendChild(link)
   }, [])
 
-  // Efecto para cargar turnos ocupados cuando cambia fecha o empleado
   useEffect(() => {
     if (seleccion.fecha && negocio) {
       cargarTurnosOcupados()
@@ -105,7 +102,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       .gte('fecha_hora', inicioDia)
       .lte('fecha_hora', finDia)
 
-    // Si seleccionó un empleado, filtramos solo por ese empleado
     if (seleccion.empleado) {
       query = query.eq('empleado_id', seleccion.empleado.id)
     }
@@ -119,7 +115,7 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     const slots: { hora: string; disponible: boolean }[] = []
     const intervalo = negocio?.intervalo_turnos || 30
     const duracionNueva = seleccion.servicio?.duracion_minutos || 30
-    
+
     const inicio = negocio?.horario_apertura ? parseInt(negocio.horario_apertura.split(':')[0]) * 60 + parseInt(negocio.horario_apertura.split(':')[1]) : 9 * 60
     const fin = negocio?.horario_cierre ? parseInt(negocio.horario_cierre.split(':')[0]) * 60 + parseInt(negocio.horario_cierre.split(':')[1]) : 18 * 60
 
@@ -127,28 +123,26 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       const h = Math.floor(m / 60).toString().padStart(2, '0')
       const min = (m % 60).toString().padStart(2, '0')
       const horaStr = h + ':' + min
-      
-      // Lógica de superposición
+
       const inicioNuevo = m
       const finNuevo = m + duracionNueva
 
-      const ocupado = turnosOcupados.some(turno => {
+      const turnosEnSlot = turnosOcupados.filter(turno => {
         const hTurno = new Date(turno.fecha_hora).getHours()
         const mTurno = new Date(turno.fecha_hora).getMinutes()
         const inicioExistente = hTurno * 60 + mTurno
         const duracionExistente = turno.servicios?.duracion_minutos || 30
         const finExistente = inicioExistente + duracionExistente
-
-        // Si el nuevo turno empieza antes de que termine el viejo Y termina después de que empiece el viejo
         return inicioNuevo < finExistente && finNuevo > inicioExistente
-      })
+      }).length
+
+      const ocupado = turnosEnSlot >= (negocio.turnos_simultaneos || 1)
 
       slots.push({ hora: horaStr, disponible: !ocupado })
     }
     return slots
   }
 
-  // ... (buscarTurnos, cancelarTurno, confirmarTurno se mantienen igual)
   const buscarTurnos = async () => {
     if (!waCancelar) return
     setBuscando(true)
@@ -254,7 +248,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     outline: 'none', cursor: 'pointer', flexShrink: 0, height: '50px',
   }
 
-  // Renderizados condicionales (loading, negocio no encontrado, modo cancelar, confirmado) se mantienen igual...
   if (loading) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: fuente }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
@@ -271,7 +264,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
     </div>
   )
 
-  // ... (Aquí iría el bloque de modoCancelar y confirmado que ya tenías)
   if (modoCancelar) return (
     <div style={{ minHeight: '100vh', background: bgColor, color: textColor, fontFamily: fuente }}>
       <div style={{ height: '4px', background: color }} />
@@ -383,7 +375,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
         @keyframes heroFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      {/* Galería e Imagen de portada se mantienen igual... */}
       {vistaGaleria && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           onClick={() => setVistaGaleria(null)}>
@@ -479,7 +470,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
 
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
 
-        {/* Steps */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2.5rem', gap: 0 }}>
           {[1,2,3,4].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center' }}>
@@ -585,16 +575,16 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '8px' }}>
                   {generarHoras().map((slot) => (
-                    <button key={slot.hora} className="btn-hora" 
+                    <button key={slot.hora} className="btn-hora"
                       disabled={!slot.disponible}
                       onClick={() => { if(slot.disponible) { setSeleccion({...seleccion, hora: slot.hora}); setPaso(4) } }}
-                      style={{ 
-                        background: seleccion.hora === slot.hora ? color : bgCard, 
-                        border: '1.5px solid ' + (seleccion.hora === slot.hora ? color : borderColor), 
-                        borderRadius: '10px', padding: '0.75rem 0.5rem', color: !slot.disponible ? (tema === 'light' ? '#ccc' : '#444') : (seleccion.hora === slot.hora ? '#fff' : textColor), 
-                        fontSize: '0.875rem', fontWeight: '700', cursor: slot.disponible ? 'pointer' : 'not-allowed', 
+                      style={{
+                        background: seleccion.hora === slot.hora ? color : bgCard,
+                        border: '1.5px solid ' + (seleccion.hora === slot.hora ? color : borderColor),
+                        borderRadius: '10px', padding: '0.75rem 0.5rem', color: !slot.disponible ? (tema === 'light' ? '#ccc' : '#444') : (seleccion.hora === slot.hora ? '#fff' : textColor),
+                        fontSize: '0.875rem', fontWeight: '700', cursor: slot.disponible ? 'pointer' : 'not-allowed',
                         opacity: !slot.disponible ? 0.5 : 1,
-                        transition: 'all 0.15s' 
+                        transition: 'all 0.15s'
                       }}>
                       {slot.hora}
                     </button>
