@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPlanInfo } from '@/lib/plan'
 import Link from 'next/link'
 
 export default function Empleados() {
@@ -85,6 +86,9 @@ export default function Empleados() {
 
   const linkNegocio = negocio ? '/b/' + negocio.slug : '#'
 
+  const planInfo = negocio ? getPlanInfo(negocio) : null
+  const limiteAlcanzado = planInfo ? empleados.length >= planInfo.limites.empleados : false
+
   return (
     <>
       <style>{`
@@ -96,6 +100,7 @@ export default function Empleados() {
         .empleado-card:hover { border-color: rgba(79,142,247,0.3); }
         .btn-primary { background: linear-gradient(135deg,#4f8ef7,#00d4ff); color: #000; font-family: 'DM Sans', sans-serif; font-weight: 700; border: none; border-radius: 12px; padding: 12px 20px; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
         .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-secondary { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); font-family: 'DM Sans', sans-serif; font-weight: 600; border-radius: 12px; padding: 12px 20px; cursor: pointer; font-size: 14px; }
         .btn-secondary:hover { border-color: rgba(79,142,247,0.3); }
       `}</style>
@@ -111,16 +116,47 @@ export default function Empleados() {
               Empleados
             </div>
           </div>
-          <button onClick={() => setMostrarForm(true)} className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }}>
-            + Agregar
+          <button
+            onClick={() => !limiteAlcanzado && setMostrarForm(true)}
+            disabled={limiteAlcanzado}
+            className="btn-primary"
+            style={{ padding: '8px 16px', fontSize: '13px' }}
+            title={limiteAlcanzado ? 'Límite del plan alcanzado' : ''}
+          >
+            {limiteAlcanzado ? '🔒 Límite' : '+ Agregar'}
           </button>
         </div>
 
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '16px' }}>
 
+          {/* BANNER LÍMITE */}
+          {planInfo && (
+            <div style={{ marginBottom: '16px' }}>
+              {limiteAlcanzado && !planInfo.esPremiumPago && (
+                <div style={{ background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.25)', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#ff6b6b', marginBottom: '2px' }}>Límite alcanzado</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>El plan Básico permite {planInfo.limites.empleados} empleado. Pasá a Premium para agregar más.</div>
+                  </div>
+                  <a href="https://link.mercadopago.com.ar/slotly" target="_blank" rel="noreferrer"
+                    style={{ background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', color: '#000', fontWeight: 700, fontSize: '12px', padding: '8px 14px', borderRadius: '10px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                    Ver Premium
+                  </a>
+                </div>
+              )}
+              {planInfo.enTrialFeatures && !planInfo.esPremiumPago && (
+                <div style={{ background: 'rgba(200,169,110,0.08)', border: '1px solid rgba(200,169,110,0.25)', borderRadius: '12px', padding: '12px 16px', marginTop: limiteAlcanzado ? '8px' : '0' }}>
+                  <div style={{ fontSize: '12px', color: '#c8a96e' }}>✨ Tenés {planInfo.diasRestantesTrial} día{planInfo.diasRestantesTrial !== 1 ? 's' : ''} de prueba Premium. ¡Aprovechalo!</div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ marginBottom: '16px' }}>
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: '22px', fontWeight: 800 }}>Tu equipo</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Agregá los empleados de tu negocio</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
+              {planInfo && !planInfo.esPremiumPago ? empleados.length + ' / ' + planInfo.limites.empleados + ' empleados del plan Básico' : 'Agregá los empleados de tu negocio'}
+            </p>
           </div>
 
           {mostrarForm && (
