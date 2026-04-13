@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
@@ -29,6 +29,7 @@ export default function DashboardMinimalista() {
   const [filtro, setFiltro] = useState('hoy')
   const [copiado, setCopiado] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [acento, setAcento] = useState('#c8a96e')
 
   const frase = FRASES[new Date().getDay() % FRASES.length]
   const fecha = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -36,7 +37,11 @@ export default function DashboardMinimalista() {
 
   useEffect(() => {
     const n = JSON.parse(localStorage.getItem('negocio') || '{}')
-    if (n.id) { setNegocio(n); cargarTurnos(n.id) }
+    if (n.id) {
+      setNegocio(n)
+      setAcento(n.dashboard_acento || '#c8a96e')
+      cargarTurnos(n.id)
+    }
     else window.location.href = '/login'
   }, [])
 
@@ -117,10 +122,18 @@ export default function DashboardMinimalista() {
     if (estado === 'confirmado') return { color: '#7ecb9a', border: 'rgba(126,203,154,0.25)', label: 'Confirmado' }
     if (estado === 'cancelado') return { color: '#e07070', border: 'rgba(224,112,112,0.25)', label: 'Cancelado' }
     if (estado === 'completado') return { color: '#7ab0e0', border: 'rgba(122,176,224,0.25)', label: 'Completado' }
-    return { color: '#c8a96e', border: 'rgba(200,169,110,0.25)', label: 'Pendiente' }
+    return { color: acento, border: 'rgba(200,169,110,0.25)', label: 'Pendiente' }
   }
 
-  const barColors = ['#c8a96e','#7ab0e0','#c8a96e','#7ecb9a','#c8a96e','#7ab0e0','#c8a96e']
+  const acentoAlpha = (op: number) => {
+    const hex = acento.replace('#', '')
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + op + ')'
+  }
+
+  const barColors = [acento, '#7ab0e0', acento, '#7ecb9a', acento, '#7ab0e0', acento]
 
   const menuItems = [
     { icon: '🗂️', label: 'Servicios', href: '/dashboard/servicios' },
@@ -162,13 +175,13 @@ export default function DashboardMinimalista() {
         .m-turno:last-child { border-bottom:none; padding-bottom:0; }
 
         .m-filtro { font-size:9px; letter-spacing:1.5px; color:rgba(240,237,232,0.35); cursor:pointer; background:none; border:none; font-family:'DM Sans',sans-serif; padding:0; text-transform:uppercase; transition:color 0.2s; }
-        .m-filtro.active { color:#c8a96e; }
+        .m-filtro.active { color:${acento}; }
 
         .m-action { padding:4px 10px; font-size:10px; font-weight:500; cursor:pointer; border:1px solid; font-family:'DM Sans',sans-serif; background:transparent; letter-spacing:0.5px; transition:opacity 0.2s; }
         .m-action:hover { opacity:0.7; }
 
-        .m-copy { width:100%; background:transparent; border:1px solid rgba(200,169,110,0.35); color:#c8a96e; padding:13px; font-family:'DM Sans',sans-serif; font-size:10px; letter-spacing:4px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
-        .m-copy:hover { background:rgba(200,169,110,0.06); }
+        .m-copy { width:100%; background:transparent; border:1px solid ${acentoAlpha(0.35)}; color:${acento}; padding:13px; font-family:'DM Sans',sans-serif; font-size:10px; letter-spacing:4px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
+        .m-copy:hover { background:${acentoAlpha(0.06)}; }
 
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
@@ -180,9 +193,9 @@ export default function DashboardMinimalista() {
 
         .m-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:#0e0e0e; border-top:1px solid rgba(255,255,255,0.07); justify-content:space-around; padding:12px 0 20px; z-index:50; }
         .m-nav-item { display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; color:rgba(240,237,232,0.35); font-size:7px; letter-spacing:2px; text-transform:uppercase; background:none; border:none; font-family:'DM Sans',sans-serif; text-decoration:none; transition:color 0.2s; }
-        .m-nav-item.active { color:#c8a96e; }
+        .m-nav-item.active { color:${acento}; }
         .m-nav-item svg { width:17px; height:17px; }
-        .m-nav-center { width:34px; height:34px; border:1px solid rgba(200,169,110,0.4); display:flex; align-items:center; justify-content:center; margin-top:-6px; color:#c8a96e; }
+        .m-nav-center { width:34px; height:34px; border:1px solid ${acentoAlpha(0.4)}; display:flex; align-items:center; justify-content:center; margin-top:-6px; color:${acento}; }
 
         @media (max-width: 768px) {
           .dashboard-grid { grid-template-columns:1fr !important; }
@@ -232,7 +245,7 @@ export default function DashboardMinimalista() {
         </div>
 
         <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ fontSize: '9px', letterSpacing: '2px', color: '#c8a96e', border: '1px solid rgba(200,169,110,0.3)', padding: '6px 12px', textAlign: 'center', marginBottom: '12px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '2px', color: acento, border: '1px solid ' + acentoAlpha(0.3), padding: '6px 12px', textAlign: 'center', marginBottom: '12px' }}>
             {(negocio?.plan || 'basico').toUpperCase()}
           </div>
           <button onClick={cerrarSesion} style={{ fontSize: '10px', letterSpacing: '2px', color: 'rgba(240,237,232,0.35)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", textTransform: 'uppercase' }}>
@@ -262,14 +275,14 @@ export default function DashboardMinimalista() {
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '34px', lineHeight: 1.15, marginBottom: '8px' }}>
               {getSaludo()},<br />
-              <em style={{ fontStyle: 'italic', color: '#c8a96e' }}>{negocio?.nombre}</em>
+              <em style={{ fontStyle: 'italic', color: acento }}>{negocio?.nombre}</em>
             </h1>
             <div style={{ fontSize: '10px', color: 'rgba(240,237,232,0.35)', letterSpacing: '1.5px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#7ecb9a', display: 'inline-block', animation: 'pulse 2s infinite' }} />
               {fechaCapitalizada}
             </div>
-            <div style={{ width: '32px', height: '1px', background: '#c8a96e', opacity: 0.35, marginBottom: '20px' }} />
-            <div style={{ padding: '14px 18px', borderLeft: '1px solid #c8a96e', opacity: 0.55, display: 'inline-block' }}>
+            <div style={{ width: '32px', height: '1px', background: acento, opacity: 0.35, marginBottom: '20px' }} />
+            <div style={{ padding: '14px 18px', borderLeft: '1px solid ' + acento, opacity: 0.55, display: 'inline-block' }}>
               <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '14px', color: '#f0ede8', lineHeight: 1.6 }}>
                 {frase}
               </p>
@@ -292,7 +305,7 @@ export default function DashboardMinimalista() {
                 ].map((s, i) => (
                   <div key={i} className="m-stat">
                     <div style={{ fontSize: '8px', letterSpacing: '2px', color: 'rgba(240,237,232,0.3)', textTransform: 'uppercase', marginBottom: '10px' }}>{s.label}</div>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: s.small ? '24px' : '40px', color: s.gold ? '#c8a96e' : '#f0ede8', lineHeight: 1 }}>{s.value}</div>
+                    <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: s.small ? '24px' : '40px', color: s.gold ? acento : '#f0ede8', lineHeight: 1 }}>{s.value}</div>
                   </div>
                 ))}
               </div>
@@ -330,9 +343,9 @@ export default function DashboardMinimalista() {
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: i < topServicios.length - 1 ? '14px' : 0 }}>
                       <div style={{ fontSize: '11px', color: 'rgba(240,237,232,0.35)', minWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</div>
                       <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }}>
-                        <div style={{ height: '100%', width: Math.round((count / maxServicio) * 100) + '%', background: '#c8a96e', opacity: 0.5 }} />
+                        <div style={{ height: '100%', width: Math.round((count / maxServicio) * 100) + '%', background: acento, opacity: 0.5 }} />
                       </div>
-                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: '#c8a96e', minWidth: '20px', textAlign: 'right' }}>{count}</div>
+                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: acento, minWidth: '20px', textAlign: 'right' }}>{count}</div>
                     </div>
                   ))}
                 </div>
