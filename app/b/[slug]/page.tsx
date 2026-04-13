@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPlanInfo } from '@/lib/plan'
 
 const FUENTES = {
   moderna: "'Plus Jakarta Sans', 'Inter', sans-serif",
@@ -55,6 +56,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   const [cancelado, setCancelado] = useState(false)
   const [turnosOcupados, setTurnosOcupados] = useState<any[]>([])
   const [cargandoHoras, setCargandoHoras] = useState(false)
+  const [turnosMes, setTurnosMes] = useState(0)
+  const [limiteTurnosAlcanzado, setLimiteTurnosAlcanzado] = useState(false)
 
   useEffect(() => {
     cargarNegocio()
@@ -85,6 +88,23 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       const { data: emps } = await supabase.from('empleados').select('*').eq('negocio_id', neg.id).eq('activo', true)
       setServicios(servs || [])
       setEmpleados(emps || [])
+
+      // Verificar límite de turnos del mes
+      const ahora = new Date()
+      const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString()
+      const finMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59).toISOString()
+      const { count } = await supabase
+        .from('turnos')
+        .select('*', { count: 'exact', head: true })
+        .eq('negocio_id', neg.id)
+        .in('estado', ['pendiente', 'confirmado', 'completado'])
+        .gte('fecha_hora', inicioMes)
+        .lte('fecha_hora', finMes)
+
+      const planInfo = getPlanInfo(neg)
+      const cantTurnos = count || 0
+      setTurnosMes(cantTurnos)
+      setLimiteTurnosAlcanzado(!planInfo.esPremiumPago && cantTurnos >= planInfo.limites.turnosMes)
     }
     setLoading(false)
   }
@@ -137,7 +157,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
       }).length
 
       const ocupado = turnosEnSlot >= (negocio.turnos_simultaneos || 1)
-
       slots.push({ hora: horaStr, disponible: !ocupado })
     }
     return slots
@@ -169,6 +188,8 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   }
 
   const confirmarTurno = async () => {
+    // Doble check por si acaso
+    if (limiteTurnosAlcanzado) return
     setGuardando(true)
     const waSinPrefijo = normalizarWA(seleccion.whatsapp)
     let clienteId = null
@@ -261,6 +282,25 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
   if (!negocio) return (
     <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: textColor, fontFamily: fuente }}>
       Negocio no encontrado
+    </div>
+  )
+
+  // LÍMITE DE TURNOS ALCANZADO
+  if (limiteTurnosAlcanzado) return (
+    <div style={{ minHeight: '100vh', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', fontFamily: fuente }}>
+      <div style={{ textAlign: 'center', maxWidth: '420px' }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: '1.25rem' }}>📅</div>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: textColor, marginBottom: '0.5rem' }}>Agenda completa por este mes</h2>
+        <p style={{ color: textSub, fontSize: '0.9rem', lineHeight: 1.6 }}>
+          {negocio.nombre} alcanzó el límite de turnos para este mes. Volvé a intentarlo el mes que viene o contactá al negocio directamente.
+        </p>
+        {negocio.whatsapp && (
+          <a href={'https://wa.me/549' + negocio.whatsapp} target="_blank" rel="noreferrer"
+            style={{ display: 'inline-block', marginTop: '1.5rem', background: '#25D366', color: '#fff', fontWeight: '700', fontSize: '0.9rem', padding: '0.875rem 1.5rem', borderRadius, textDecoration: 'none' }}>
+            Contactar por WhatsApp
+          </a>
+        )}
+      </div>
     </div>
   )
 
@@ -562,7 +602,6 @@ export default function Reserva({ params }: { params: Promise<{ slug: string }> 
                 onChange={e => setSeleccion({...seleccion, fecha: e.target.value, hora: ''})}
                 style={estiloInput} />
             </div>
-
             {seleccion.fecha && (
               !esDiaDisponible(seleccion.fecha) ? (
                 <div style={{ textAlign: 'center', padding: '2rem 1rem', background: bgSubtle, borderRadius: '18px', color: textSub, fontSize: '0.9rem' }}>
