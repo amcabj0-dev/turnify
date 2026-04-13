@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPlanInfo } from '@/lib/plan'
 import Link from 'next/link'
 
 const FRASES = [
@@ -13,8 +14,6 @@ const FRASES = [
   'El exito es la suma de pequeños esfuerzos repetidos.',
   'Quien cuida a sus clientes construye un negocio para siempre.',
 ]
-
-const ALIAS = 'aavp.mp'
 
 export default function Dashboard() {
   const [negocio, setNegocio] = useState<any>(null)
@@ -132,6 +131,7 @@ export default function Dashboard() {
   }
 
   const planActual = negocio?.plan || 'basico'
+  const planInfo = negocio ? getPlanInfo(negocio) : null
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -163,6 +163,19 @@ export default function Dashboard() {
       `}</style>
 
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: "'DM Sans', sans-serif", paddingBottom: '80px' }}>
+
+        {/* BANNER TRIAL */}
+        {planInfo && planInfo.enTrialFeatures && !planInfo.esPremiumPago && (
+          <div style={{ background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#000' }}>
+              ✨ Premium gratis · Te quedan {planInfo.diasRestantesTrial} día{planInfo.diasRestantesTrial !== 1 ? 's' : ''}
+            </span>
+            <a href="https://link.mercadopago.com.ar/slotly" target="_blank" rel="noreferrer"
+              style={{ fontSize: '11px', fontWeight: 700, color: '#000', background: 'rgba(0,0,0,0.15)', padding: '3px 10px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Suscribirme
+            </a>
+          </div>
+        )}
 
         {/* Header */}
         <div style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--border-color)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
