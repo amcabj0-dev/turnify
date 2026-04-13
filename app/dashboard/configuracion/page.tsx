@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getPlanInfo } from '@/lib/plan'
 import Link from 'next/link'
 
 const TEMAS_DASHBOARD = [
@@ -11,31 +12,46 @@ const TEMAS_DASHBOARD = [
 ]
 
 const limpiarSlug = (texto: string) => {
-  return texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
+  return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim()
 }
 
 const ACENTOS_MINIMALISTA = ['#c8a96e','#7ecb9a','#7ab0e0','#e07070','#a78bfa','#f0ede8']
+
+const DIAS_SEMANA = [
+  { v: '0', l: 'Domingo' },
+  { v: '1', l: 'Lunes' },
+  { v: '2', l: 'Martes' },
+  { v: '3', l: 'Miércoles' },
+  { v: '4', l: 'Jueves' },
+  { v: '5', l: 'Viernes' },
+  { v: '6', l: 'Sábado' },
+]
+
+type TramoHorario = { abre: string; cierra: string }
+type HorariosJson = Record<string, TramoHorario[] | null>
+
+const horariosDefault: HorariosJson = {
+  '0': null,
+  '1': [{ abre: '09:00', cierra: '18:00' }],
+  '2': [{ abre: '09:00', cierra: '18:00' }],
+  '3': [{ abre: '09:00', cierra: '18:00' }],
+  '4': [{ abre: '09:00', cierra: '18:00' }],
+  '5': [{ abre: '09:00', cierra: '18:00' }],
+  '6': null,
+}
 
 export default function Configuracion() {
   const [negocio, setNegocio] = useState<any>(null)
   const [form, setForm] = useState({
     nombre: '', slug: '', descripcion: '', direccion: '', whatsapp_notif: '',
-    color: '#4f8ef7', horario_apertura: '09:00', horario_cierre: '18:00',
-    horario_cortado: false,
-    horario_apertura_2: '16:00', horario_cierre_2: '20:00',
+    color: '#4f8ef7',
     tema: 'light', fuente: 'moderna', forma_botones: 'pill',
     mensaje_bienvenida: '', mensaje_confirmacion: '',
     instagram: '', facebook: '', tiktok: '', google_maps: '',
-    dias_atencion: ['1','2','3','4','5'], intervalo_turnos: 30, turnos_simultaneos: 1,
+    intervalo_turnos: 30, turnos_simultaneos: 1,
     dashboard_estilo: 'clasico', dashboard_acento: '#c8a96e',
   })
+  const [horarios, setHorarios] = useState<HorariosJson>(horariosDefault)
   const [temaDashboard, setTemaDashboard] = useState('oscuro')
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
@@ -49,11 +65,6 @@ export default function Configuracion() {
   const logoRef = useRef<any>(null)
   const portadaRef = useRef<any>(null)
   const galeriaRef = useRef<any>(null)
-
-  const DIAS = [
-    { v: '0', l: 'Dom' }, { v: '1', l: 'Lun' }, { v: '2', l: 'Mar' },
-    { v: '3', l: 'Mié' }, { v: '4', l: 'Jue' }, { v: '5', l: 'Vie' }, { v: '6', l: 'Sáb' },
-  ]
 
   const REDES = [
     { key: 'instagram', label: 'Instagram', color: '#E1306C', placeholder: '@tunegocio' },
@@ -73,11 +84,6 @@ export default function Configuracion() {
         direccion: n.direccion || '',
         whatsapp_notif: n.whatsapp_notif || '',
         color: n.color || '#4f8ef7',
-        horario_apertura: n.horario_apertura || '09:00',
-        horario_cierre: n.horario_cierre || '18:00',
-        horario_cortado: n.horario_cortado || false,
-        horario_apertura_2: n.horario_apertura_2 || '16:00',
-        horario_cierre_2: n.horario_cierre_2 || '20:00',
         tema: n.tema || 'light',
         fuente: n.fuente || 'moderna',
         forma_botones: n.forma_botones || 'pill',
@@ -87,12 +93,12 @@ export default function Configuracion() {
         facebook: n.facebook || '',
         tiktok: n.tiktok || '',
         google_maps: n.google_maps || '',
-        dias_atencion: n.dias_atencion || ['1','2','3','4','5'],
         intervalo_turnos: n.intervalo_turnos || 30,
         turnos_simultaneos: n.turnos_simultaneos || 1,
         dashboard_estilo: n.dashboard_estilo || 'clasico',
         dashboard_acento: n.dashboard_acento || '#c8a96e',
       })
+      setHorarios(n.horarios_json || horariosDefault)
       setLogoUrl(n.logo_url || '')
       setPortadaUrl(n.foto_portada || '')
       setGaleriaUrls(n.galeria || [])
@@ -111,10 +117,32 @@ export default function Configuracion() {
   }
 
   const toggleDia = (dia: string) => {
-    const dias = form.dias_atencion.includes(dia)
-      ? form.dias_atencion.filter(d => d !== dia)
-      : [...form.dias_atencion, dia]
-    setForm({...form, dias_atencion: dias})
+    setHorarios(prev => ({
+      ...prev,
+      [dia]: prev[dia] ? null : [{ abre: '09:00', cierra: '18:00' }]
+    }))
+  }
+
+  const agregarTramo = (dia: string) => {
+    setHorarios(prev => ({
+      ...prev,
+      [dia]: [...(prev[dia] || []), { abre: '16:00', cierra: '20:00' }]
+    }))
+  }
+
+  const eliminarTramo = (dia: string, idx: number) => {
+    setHorarios(prev => {
+      const tramos = (prev[dia] || []).filter((_, i) => i !== idx)
+      return { ...prev, [dia]: tramos.length > 0 ? tramos : null }
+    })
+  }
+
+  const actualizarTramo = (dia: string, idx: number, campo: 'abre' | 'cierra', valor: string) => {
+    setHorarios(prev => {
+      const tramos = [...(prev[dia] || [])]
+      tramos[idx] = { ...tramos[idx], [campo]: valor }
+      return { ...prev, [dia]: tramos }
+    })
   }
 
   const subirLogo = async (e: any) => {
@@ -194,19 +222,15 @@ export default function Configuracion() {
     e.preventDefault()
     setGuardando(true)
     setSlugError('')
-
     const slugLimpio = limpiarSlug(form.slug)
-
     if (slugLimpio !== negocio.slug) {
-      const { data: slugExiste } = await supabase
-        .from('negocios').select('id').eq('slug', slugLimpio).single()
+      const { data: slugExiste } = await supabase.from('negocios').select('id').eq('slug', slugLimpio).single()
       if (slugExiste) {
         setSlugError('Esa URL ya está en uso, elegí otra')
         setGuardando(false)
         return
       }
     }
-
     const { data, error } = await supabase
       .from('negocios')
       .update({
@@ -216,11 +240,6 @@ export default function Configuracion() {
         direccion: form.direccion,
         whatsapp_notif: form.whatsapp_notif,
         color: form.color,
-        horario_apertura: form.horario_apertura,
-        horario_cierre: form.horario_cierre,
-        horario_cortado: form.horario_cortado,
-        horario_apertura_2: form.horario_apertura_2,
-        horario_cierre_2: form.horario_cierre_2,
         tema: form.tema,
         fuente: form.fuente,
         forma_botones: form.forma_botones,
@@ -230,53 +249,56 @@ export default function Configuracion() {
         facebook: form.facebook,
         tiktok: form.tiktok,
         google_maps: form.google_maps,
-        dias_atencion: form.dias_atencion,
         intervalo_turnos: Number(form.intervalo_turnos),
         turnos_simultaneos: Number(form.turnos_simultaneos),
-        dashboard_estilo: form.dashboard_estilo,
+        dashboard_estilo: 'clasico',
         dashboard_acento: form.dashboard_acento,
+        horarios_json: horarios,
       })
       .eq('id', negocio.id)
       .select()
       .single()
-
     if (!error && data) {
       localStorage.setItem('negocio', JSON.stringify(data))
       setNegocio(data)
       setForm(f => ({ ...f, slug: data.slug }))
-      // Redirigir al dashboard correcto
-      if (form.dashboard_estilo === 'minimalista') {
-        window.location.href = '/dashboard/minimalista'
-      } else {
-        window.location.href = '/dashboard'
-      }
+      window.location.href = '/dashboard'
     }
     setGuardando(false)
   }
 
   const coloresPreset = ['#4f8ef7','#7c5af7','#00d4ff','#00e5a0','#ffd166','#ff6b6b','#f97316','#a855f7']
   const esPremium = negocio?.plan === 'premium'
+  const planInfo = negocio ? getPlanInfo(negocio) : null
 
-  const cardStyle = { background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }
-  const labelStyle = { fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }
-  const inputStyle = { width: '100%', background: 'var(--input-bg)', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }
-  const sectionTitleStyle = { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '14px', color: 'var(--text-primary)' }
-  const sectionHeaderStyle = { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)', padding: '10px 0 6px', borderBottom: '1px solid var(--border-color)', marginBottom: '12px', letterSpacing: '0.5px' }
+  const cardStyle: React.CSSProperties = { background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }
+  const labelStyle: React.CSSProperties = { fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }
+  const inputStyle: React.CSSProperties = { width: '100%', background: 'var(--input-bg)', border: '1px solid var(--border-card)', borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }
+  const sectionTitleStyle: React.CSSProperties = { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', marginBottom: '14px', color: 'var(--text-primary)' }
+  const sectionHeaderStyle: React.CSSProperties = { fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '15px', color: 'var(--text-primary)', padding: '10px 0 6px', borderBottom: '1px solid var(--border-color)', marginBottom: '12px', letterSpacing: '0.5px' }
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
-        .toggle { position:relative; width:40px; height:22px; }
-        .toggle input { opacity:0; width:0; height:0; }
-        .toggle-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:var(--border-card); border-radius:22px; transition:.3s; }
-        .toggle-slider:before { position:absolute; content:""; height:16px; width:16px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.3s; }
-        .toggle input:checked + .toggle-slider { background:#4f8ef7; }
-        .toggle input:checked + .toggle-slider:before { transform:translateX(18px); }
+        input[type="time"] { color-scheme: dark; }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: "'DM Sans', sans-serif" }}>
+
+        {/* BANNER TRIAL */}
+        {planInfo && planInfo.enTrialFeatures && !planInfo.esPremiumPago && (
+          <div style={{ background: 'linear-gradient(135deg,#4f8ef7,#00d4ff)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#000' }}>
+              ✨ Premium gratis · Te quedan {planInfo.diasRestantesTrial} día{planInfo.diasRestantesTrial !== 1 ? 's' : ''}
+            </span>
+            <a href="https://link.mercadopago.com.ar/slotly" target="_blank" rel="noreferrer"
+              style={{ fontSize: '11px', fontWeight: 700, color: '#000', background: 'rgba(0,0,0,0.15)', padding: '3px 10px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Suscribirme
+            </a>
+          </div>
+        )}
 
         {/* Header */}
         <div style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--border-color)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', position: 'sticky', top: 0, zIndex: 50 }}>
@@ -360,7 +382,6 @@ export default function Configuracion() {
                       style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                   </div>
                   {slugError && <p style={{ fontSize: '11px', color: '#ff6b6b', margin: '4px 0 0' }}>{slugError}</p>}
-                  <p style={{ fontSize: '10px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>Solo letras, números y guiones. Sin tildes ni espacios.</p>
                 </div>
                 <div>
                   <label style={labelStyle}>Descripción</label>
@@ -498,20 +519,19 @@ export default function Configuracion() {
             <div style={cardStyle}>
               <div style={sectionTitleStyle}>Estilo del panel</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-                {[
-                  { v: 'clasico', l: '⚡ Clásico', desc: 'Moderno con stats y colores' },
-                  { v: 'minimalista', l: '✦ Minimalista', desc: 'Elegante, tipografía serif' },
-                ].map(e => (
-                  <button key={e.v} type="button" onClick={() => setForm({...form, dashboard_estilo: e.v})}
-                    style={{ border: '1px solid', borderColor: form.dashboard_estilo === e.v ? form.color : 'var(--border-card)', background: form.dashboard_estilo === e.v ? form.color + '15' : 'var(--bg-card)', borderRadius: '10px', padding: '14px 12px', textAlign: 'left', cursor: 'pointer' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: form.dashboard_estilo === e.v ? form.color : 'var(--text-primary)', marginBottom: '4px' }}>{e.l}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{e.desc}</div>
-                    {form.dashboard_estilo === e.v && <div style={{ fontSize: '10px', fontWeight: 700, marginTop: '6px', color: form.color }}>✓ Activo</div>}
-                  </button>
-                ))}
+                <button type="button" onClick={() => setForm({...form, dashboard_estilo: 'clasico'})}
+                  style={{ border: '1px solid', borderColor: form.dashboard_estilo === 'clasico' ? form.color : 'var(--border-card)', background: form.dashboard_estilo === 'clasico' ? form.color + '15' : 'var(--bg-card)', borderRadius: '10px', padding: '14px 12px', textAlign: 'left', cursor: 'pointer' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: form.dashboard_estilo === 'clasico' ? form.color : 'var(--text-primary)', marginBottom: '4px' }}>⚡ Clásico</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Moderno con stats y colores</div>
+                  {form.dashboard_estilo === 'clasico' && <div style={{ fontSize: '10px', fontWeight: 700, marginTop: '6px', color: form.color }}>✓ Activo</div>}
+                </button>
+                <div style={{ border: '1px solid var(--border-card)', background: 'var(--bg-card)', borderRadius: '10px', padding: '14px 12px', textAlign: 'left', opacity: 0.5, position: 'relative' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>✦ Minimalista</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Elegante, tipografía serif</div>
+                  <span style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '9px', background: 'rgba(255,209,102,0.12)', color: '#ffd166', border: '1px solid rgba(255,209,102,0.3)', padding: '2px 6px', borderRadius: '20px', fontWeight: 700 }}>Próximamente</span>
+                </div>
               </div>
 
-              {/* Si clásico → selector de tema */}
               {form.dashboard_estilo === 'clasico' && (
                 <div>
                   <label style={labelStyle}>Tema de color</label>
@@ -527,92 +547,73 @@ export default function Configuracion() {
                   </div>
                 </div>
               )}
-
-              {/* Si minimalista → selector de acento */}
-              {form.dashboard_estilo === 'minimalista' && (
-                <div>
-                  <label style={labelStyle}>Color de acento</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    {ACENTOS_MINIMALISTA.map(c => (
-                      <button key={c} type="button" onClick={() => setForm({...form, dashboard_acento: c})}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', background: c, border: form.dashboard_acento === c ? '3px solid #fff' : '2px solid rgba(255,255,255,0.15)', cursor: 'pointer' }} />
-                    ))}
-                    <input type="color" value={form.dashboard_acento} onChange={e => setForm({...form, dashboard_acento: e.target.value})}
-                      style={{ width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', border: 'none', background: 'transparent' }} />
-                  </div>
-                  <p style={{ fontSize: '10px', color: 'var(--text-secondary)', margin: '6px 0 0' }}>Se aplica en números, botones y acentos del panel minimalista</p>
-                </div>
-              )}
             </div>
 
             {/* ── SECCIÓN 3: OPERACIÓN ── */}
             <div style={sectionHeaderStyle}>⚙️ Operación</div>
 
-            {/* HORARIOS */}
+            {/* HORARIOS ESTILO WHATSAPP */}
             <div style={cardStyle}>
-              <div style={sectionTitleStyle}>🕐 Horarios y días</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={sectionTitleStyle}>🕐 Horarios de atención</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                {DIAS_SEMANA.map((dia, idx) => {
+                  const activo = horarios[dia.v] !== null && horarios[dia.v] !== undefined
+                  const tramos = horarios[dia.v] || []
+                  return (
+                    <div key={dia.v} style={{ borderBottom: idx < 6 ? '1px solid var(--border-color)' : 'none', paddingBottom: '12px', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: activo ? '10px' : '0' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: activo ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{dia.l}</span>
+                        <button type="button" onClick={() => toggleDia(dia.v)}
+                          style={{ width: '44px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: activo ? '#4f8ef7' : 'var(--border-card)', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                          <span style={{ position: 'absolute', top: '3px', left: activo ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', display: 'block' }} />
+                        </button>
+                      </div>
+                      {activo && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {tramos.map((tramo, tIdx) => (
+                            <div key={tIdx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <input type="time" value={tramo.abre}
+                                onChange={e => actualizarTramo(dia.v, tIdx, 'abre', e.target.value)}
+                                style={{ ...inputStyle, width: 'auto', flex: 1 }} />
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>–</span>
+                              <input type="time" value={tramo.cierra}
+                                onChange={e => actualizarTramo(dia.v, tIdx, 'cierra', e.target.value)}
+                                style={{ ...inputStyle, width: 'auto', flex: 1 }} />
+                              {tramos.length > 1 && (
+                                <button type="button" onClick={() => eliminarTramo(dia.v, tIdx)}
+                                  style={{ background: 'rgba(255,107,107,0.12)', color: '#ff6b6b', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px', flexShrink: 0 }}>✕</button>
+                              )}
+                            </div>
+                          ))}
+                          {tramos.length < 2 && (
+                            <button type="button" onClick={() => agregarTramo(dia.v)}
+                              style={{ background: 'none', border: 'none', color: '#4f8ef7', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textAlign: 'left', padding: '2px 0', fontFamily: "'DM Sans', sans-serif" }}>
+                              + Añadir horario
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* TURNOS CONFIG */}
+            <div style={cardStyle}>
+              <div style={sectionTitleStyle}>⏱ Configuración de turnos</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={labelStyle}>Días de atención</label>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {DIAS.map(d => (
-                      <button key={d.v} type="button" onClick={() => toggleDia(d.v)}
-                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, border: '1px solid', borderColor: form.dias_atencion.includes(d.v) ? form.color : 'var(--border-card)', background: form.dias_atencion.includes(d.v) ? form.color : 'var(--bg-card)', color: form.dias_atencion.includes(d.v) ? '#000' : 'var(--text-secondary)', cursor: 'pointer' }}>
-                        {d.l}
-                      </button>
-                    ))}
-                  </div>
+                  <label style={labelStyle}>Intervalo entre turnos</label>
+                  <select value={form.intervalo_turnos} onChange={e => setForm({...form, intervalo_turnos: Number(e.target.value)})} style={inputStyle as any}>
+                    {[15,30,45,60].map(m => <option key={m} value={m}>{m} minutos</option>)}
+                  </select>
                 </div>
-
-                {/* Toggle horario cortado */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 500 }}>Horario cortado</div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Ej: 9-13 hs y 16-20 hs</div>
-                  </div>
-                  <label className="toggle">
-                    <input type="checkbox" checked={form.horario_cortado} onChange={e => setForm({...form, horario_cortado: e.target.checked})} />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={labelStyle}>{form.horario_cortado ? 'Apertura mañana' : 'Apertura'}</label>
-                    <input type="time" value={form.horario_apertura} onChange={e => setForm({...form, horario_apertura: e.target.value})} style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>{form.horario_cortado ? 'Cierre mañana' : 'Cierre'}</label>
-                    <input type="time" value={form.horario_cierre} onChange={e => setForm({...form, horario_cierre: e.target.value})} style={inputStyle} />
-                  </div>
-                </div>
-
-                {form.horario_cortado && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                      <label style={labelStyle}>Apertura tarde</label>
-                      <input type="time" value={form.horario_apertura_2} onChange={e => setForm({...form, horario_apertura_2: e.target.value})} style={inputStyle} />
-                    </div>
-                    <div>
-                      <label style={labelStyle}>Cierre tarde</label>
-                      <input type="time" value={form.horario_cierre_2} onChange={e => setForm({...form, horario_cierre_2: e.target.value})} style={inputStyle} />
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={labelStyle}>Intervalo entre turnos</label>
-                    <select value={form.intervalo_turnos} onChange={e => setForm({...form, intervalo_turnos: Number(e.target.value)})} style={inputStyle as any}>
-                      {[15,30,45,60].map(m => <option key={m} value={m}>{m} minutos</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Turnos simultáneos</label>
-                    <select value={form.turnos_simultaneos} onChange={e => setForm({...form, turnos_simultaneos: Number(e.target.value)})} style={inputStyle as any}>
-                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
-                  </div>
+                <div>
+                  <label style={labelStyle}>Turnos simultáneos</label>
+                  <select value={form.turnos_simultaneos} onChange={e => setForm({...form, turnos_simultaneos: Number(e.target.value)})} style={inputStyle as any}>
+                    {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
                 </div>
               </div>
             </div>
