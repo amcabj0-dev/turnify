@@ -8,6 +8,7 @@ export default function Registro() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+<<<<<<< HEAD
   const limpiarSlug = (texto: string) => {
     return texto.toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -16,6 +17,8 @@ export default function Registro() {
       .replace(/^-|-$/g, '')
   }
 
+=======
+>>>>>>> c40aa45 (fix: registro con supabase auth + tabla negocios consistente)
   const handleSubmit = async (e: any) => {
     e.preventDefault()
     setLoading(true)
@@ -23,6 +26,10 @@ export default function Registro() {
 
     const slugLimpio = limpiarSlug(form.slug)
 
+<<<<<<< HEAD
+=======
+    // 1. Verificar slug disponible
+>>>>>>> c40aa45 (fix: registro con supabase auth + tabla negocios consistente)
     const { data: slugExiste } = await supabase
       .from('negocios')
       .select('id')
@@ -35,10 +42,34 @@ export default function Registro() {
       return
     }
 
+<<<<<<< HEAD
     const trialHasta = new Date()
     trialHasta.setDate(trialHasta.getDate() + 30)
 
     const { data, error } = await supabase
+=======
+    // 2. Crear usuario en Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+    })
+
+    if (authError) {
+      if (authError.message.includes('already registered')) {
+        setError('Ese email ya tiene una cuenta. Iniciá sesión.')
+      } else {
+        setError(authError.message)
+      }
+      setLoading(false)
+      return
+    }
+
+    // 3. Crear negocio en tabla negocios
+    const trialHasta = new Date()
+    trialHasta.setDate(trialHasta.getDate() + 30)
+
+    const { data, error: negocioError } = await supabase
+>>>>>>> c40aa45 (fix: registro con supabase auth + tabla negocios consistente)
       .from('negocios')
       .insert([{
         nombre: form.nombre,
@@ -52,8 +83,13 @@ export default function Registro() {
       .select()
       .single()
 
+<<<<<<< HEAD
     if (error || !data) {
       setError(error?.message || 'Error al crear la cuenta')
+=======
+    if (negocioError || !data) {
+      setError(negocioError?.message || 'Error al crear la cuenta')
+>>>>>>> c40aa45 (fix: registro con supabase auth + tabla negocios consistente)
       setLoading(false)
       return
     }
